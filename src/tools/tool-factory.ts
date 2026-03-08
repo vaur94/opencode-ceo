@@ -7,6 +7,7 @@ import {
 import { executeDecisionLog } from "./ceo-decision-log.js";
 import { executeCeoDelegate } from "./ceo-delegate.js";
 import { executeGateRun, executeGateStatus } from "./ceo-gate-tools.js";
+import { executeBranchPrepare, executePrPrepare } from "./ceo-git-tools.js";
 import { executeStageTransition } from "./ceo-stage-transition.js";
 
 const z = tool.schema;
@@ -120,24 +121,28 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}branch_prepare`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}branch_prepare`,
-			"Prepare a branch name for a pipeline.",
-			{
+		tool({
+			description: "Prepare a branch name for a pipeline.",
+			args: {
 				pipeline_id: z.string(),
 				slug: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeBranchPrepare(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}pr_prepare`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}pr_prepare`,
-			"Prepare a pull request payload for a pipeline.",
-			{
+		tool({
+			description: "Prepare a pull request payload for a pipeline.",
+			args: {
 				pipeline_id: z.string(),
 				title: z.string(),
 				body: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executePrPrepare(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}repo_fingerprint`]: () =>
 		createStubTool(
 			`${TOOL_PREFIX}repo_fingerprint`,

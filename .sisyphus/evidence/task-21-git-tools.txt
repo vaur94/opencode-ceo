@@ -1,0 +1,40 @@
+Task 21 - CEO git tools evidence
+Date: 2026-03-09
+
+Files changed:
+- src/tools/ceo-git-tools.ts
+- src/tools/tool-factory.ts
+- tests/unit/tools/ceo-git-tools.test.ts
+
+Implementation:
+- Added executeBranchPrepare() wrapping src/github/branch-manager.ts:createBranch()
+- Added executePrPrepare() wrapping src/github/pr-manager.ts:createPR()
+- Replaced ceo_branch_prepare and ceo_pr_prepare stub registrations in src/tools/tool-factory.ts
+- Added unit tests that mock the branch and PR helper modules so tests do not create real git branches or PRs
+
+Diagnostics:
+- lsp_diagnostics src/tools/ceo-git-tools.ts -> no diagnostics
+- lsp_diagnostics src/tools/tool-factory.ts -> no diagnostics
+- lsp_diagnostics tests/unit/tools/ceo-git-tools.test.ts -> no diagnostics
+
+Verification commands:
+1. PATH="$HOME/.bun/bin:$PATH" bun test tests/unit/tools/ceo-git-tools.test.ts
+   Result: PASS (4 tests, 0 failures)
+
+2. PATH="$HOME/.bun/bin:$PATH" bunx tsc --noEmit
+   Result: FAIL due to pre-existing repository type errors outside Task 21 files
+   Notable unrelated failing files reported by tsc:
+   - src/tools/ceo-delegate.ts
+   - src/tools/ceo-gate-tools.ts
+   - tests/unit/tools/ceo-artifact-tools.test.ts
+   - tests/unit/tools/ceo-decision-log.test.ts
+   - tests/unit/tools/ceo-stage-transition.test.ts
+
+3. PATH="$HOME/.bun/bin:$PATH" bun run build
+   Result: PASS
+
+Requested behavior covered by tests:
+- mocked branch creation success returns "Branch created: ceo/..."
+- branch naming includes the ceo/ prefix
+- PR preparation returns a graceful GitHub auth error
+- tool factory routes both tools to the real implementations
