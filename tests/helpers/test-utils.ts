@@ -27,6 +27,6 @@ export function createMockToolContext() {
   return {
     sessionID: "mock-session-id",
     directory: "/tmp/test-project",
-    ask: async () => ({ type: "approved" }),
+    ask: async (request: unknown) => ({ type: "approved" }),
   }
 }

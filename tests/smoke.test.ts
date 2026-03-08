@@ -10,9 +10,9 @@ describe("plugin", () => {
     const mockInput = {
       directory: "/tmp/test-smoke",
       worktree: "/tmp/test-smoke",
-      client: {} as Record<string, unknown>,
+      client: {} as any,
     }
-    const hooks = await plugin(mockInput)
+    const hooks = await plugin(mockInput as any)
     expect(typeof hooks).toBe("object")
   })
 })
