@@ -8,6 +8,10 @@ import { executeDecisionLog } from "./ceo-decision-log.js";
 import { executeCeoDelegate } from "./ceo-delegate.js";
 import { executeGateRun, executeGateStatus } from "./ceo-gate-tools.js";
 import { executeBranchPrepare, executePrPrepare } from "./ceo-git-tools.js";
+import {
+	executeRepoFingerprint,
+	executeStackDetect,
+} from "./ceo-repo-tools.js";
 import { executeStageTransition } from "./ceo-stage-transition.js";
 
 const z = tool.schema;
@@ -144,21 +148,25 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}repo_fingerprint`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}repo_fingerprint`,
-			"Generate a repository fingerprint.",
-			{
+		tool({
+			description: "Generate a repository fingerprint.",
+			args: {
 				directory: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeRepoFingerprint(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}stack_detect`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}stack_detect`,
-			"Detect the project stack for a directory.",
-			{
+		tool({
+			description: "Detect the project stack for a directory.",
+			args: {
 				directory: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeStackDetect(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}delivery_format`]: () =>
 		createStubTool(
 			`${TOOL_PREFIX}delivery_format`,
