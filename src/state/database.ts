@@ -26,6 +26,15 @@ const MIGRATIONS = [
     error          TEXT,
     retry_count    INTEGER DEFAULT 0
   )`,
+  `CREATE TABLE IF NOT EXISTS artifacts (
+    id            TEXT PRIMARY KEY,
+    pipeline_id   TEXT NOT NULL REFERENCES pipeline_runs(id),
+    stage         TEXT NOT NULL,
+    type          TEXT NOT NULL,
+    path          TEXT NOT NULL,
+    created_at    INTEGER NOT NULL
+  )`,
+  "CREATE INDEX IF NOT EXISTS idx_artifact_pipeline ON artifacts(pipeline_id)",
   "CREATE INDEX IF NOT EXISTS idx_pipeline_session ON pipeline_runs(session_id)",
   "CREATE INDEX IF NOT EXISTS idx_stage_pipeline ON stage_executions(pipeline_id)",
 ]
