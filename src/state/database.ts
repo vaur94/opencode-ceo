@@ -34,7 +34,17 @@ const MIGRATIONS = [
     path          TEXT NOT NULL,
     created_at    INTEGER NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS gates (
+    id            TEXT PRIMARY KEY,
+    pipeline_id   TEXT NOT NULL REFERENCES pipeline_runs(id),
+    gate_name     TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    requested_at  INTEGER NOT NULL,
+    resolved_at   INTEGER,
+    resolved_by   TEXT
+  )`,
   "CREATE INDEX IF NOT EXISTS idx_artifact_pipeline ON artifacts(pipeline_id)",
+  "CREATE INDEX IF NOT EXISTS idx_gate_pipeline ON gates(pipeline_id, status)",
   "CREATE INDEX IF NOT EXISTS idx_pipeline_session ON pipeline_runs(session_id)",
   "CREATE INDEX IF NOT EXISTS idx_stage_pipeline ON stage_executions(pipeline_id)",
 ]
