@@ -1,1 +1,0 @@
-{"pipelineId":"291d2c47-48da-416e-9785-c203c248a671","directory":"/tmp/opencode-ceo-pipeline-Af9esg","sessionID":"mock-session-id","stack":{"primaryLanguage":"typescript","frameworks":[],"buildTool":"bun run build","testTool":"bun test","packageManager":"bun","specialistAgent":"ceo-ts-specialist"},"summary":"Detected typescript stack for /tmp/opencode-ceo-pipeline-Af9esg"}

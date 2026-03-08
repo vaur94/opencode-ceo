@@ -3,8 +3,11 @@ import type { Database } from "bun:sqlite"
 import { AGENT_IDS } from "../agents/agent-registry.js"
 import { GATE_NAMES } from "../core/constants.js"
 import { checkGate } from "../core/gate-system.js"
+import { loadConfig } from "../core/config.js"
 import { validateTransition } from "../core/pipeline-fsm.js"
 import { createNewPipeline, resumePipeline } from "../core/pipeline-manager.js"
+import { createBranch } from "../github/branch-manager.js"
+import { createPR } from "../github/pr-manager.js"
 import type { PipelineState } from "../core/types.js"
 import { detectStack } from "../stacks/detector.js"
 import { readArtifact, writeArtifact } from "../state/artifact-manager.js"
@@ -25,6 +28,8 @@ export type StageResult = {
 }
 
 type ArtifactRecord = Record<string, unknown>
+
+type GateConfigValue = { autoApprove: boolean; timeoutMs?: number }
 
 function ensurePipelineId(ctx: PipelineStageContext, stage: PipelineState): string {
   const existing = getPipeline(ctx.db, ctx.pipelineId)
@@ -74,8 +79,61 @@ function requireArtifact(
   return artifact as ArtifactRecord
 }
 
-function runAutoApprovedGate(db: Database, pipelineId: string, gateName: string): void {
-  const result = checkGate(db, pipelineId, gateName, { autoApprove: true })
+function parseGateConfig(metadata: string | null, gateName: string): GateConfigValue {
+  if (!metadata) {
+    return { autoApprove: true }
+  }
+
+  try {
+    const parsed = JSON.parse(metadata) as unknown
+    const unwrapped =
+      parsed && typeof parsed === "object" && "config" in parsed
+        ? (parsed as { config?: unknown }).config
+        : parsed
+
+    if (unwrapped && typeof unwrapped === "object" && "gates" in unwrapped) {
+      const gateValue = (unwrapped as { gates?: Record<string, unknown> }).gates?.[gateName]
+
+      if (gateValue && typeof gateValue === "object" && "autoApprove" in gateValue) {
+        const autoApprove = (gateValue as { autoApprove?: unknown }).autoApprove
+        const timeoutMs = (gateValue as { timeoutMs?: unknown }).timeoutMs
+
+        if (typeof autoApprove === "boolean") {
+          return {
+            autoApprove,
+            timeoutMs: typeof timeoutMs === "number" ? timeoutMs : undefined,
+          }
+        }
+      }
+    }
+
+    const config = loadConfig(unwrapped)
+    const gateMode = config.gates[gateName]
+
+    if (gateMode) {
+      return { autoApprove: gateMode === "auto" }
+    }
+  } catch {
+    return { autoApprove: true }
+  }
+
+  return { autoApprove: true }
+}
+
+function runConfigurableGate(
+  db: Database,
+  pipelineId: string,
+  gateName: string,
+  directory: string,
+): void {
+  void directory
+  const pipeline = getPipeline(db, pipelineId)
+
+  if (!pipeline) {
+    throw new Error(`Pipeline not found: ${pipelineId}`)
+  }
+
+  const result = checkGate(db, pipelineId, gateName, parseGateConfig(pipeline.metadata, gateName))
 
   if (!result.approved) {
     throw new Error(result.reason)
@@ -138,7 +196,7 @@ export async function runDecomposeStage(ctx: PipelineStageContext): Promise<Stag
       agent: "ceo-architect",
       plan,
     })
-    runAutoApprovedGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_PLAN)
+    runConfigurableGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_PLAN, ctx.directory)
     advancePipeline(ctx.db, pipelineId, "implement")
 
     completeStage(ctx.db, stageExecution.id, plan)
@@ -187,7 +245,7 @@ export async function runReviewStage(ctx: PipelineStageContext): Promise<StageRe
       agent: "ceo-reviewer",
       findings: review,
     })
-    runAutoApprovedGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_REVIEW)
+    runConfigurableGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_REVIEW, ctx.directory)
     advancePipeline(ctx.db, pipelineId, "test")
 
     completeStage(ctx.db, stageExecution.id, review)
@@ -233,8 +291,18 @@ export async function runDeliverStage(ctx: PipelineStageContext): Promise<StageR
     const codeChangeArtifact = requireArtifact(ctx.db, pipelineId, "implement", "code-diff")
     const reviewArtifact = requireArtifact(ctx.db, pipelineId, "review", "review")
     const testArtifact = requireArtifact(ctx.db, pipelineId, "test", "test-result")
-    const branchName = `ceo/${pipelineId}`
-    const prUrl = `https://example.com/pr/${pipelineId}`
+    const branchResult = await createBranch(ctx.directory, pipelineId, "feature")
+    const branchName = branchResult.success ? branchResult.branchName : "ceo/no-git"
+    const prResult = await createPR(
+      ctx.directory,
+      "CEO: Feature delivery",
+      "Automated delivery by opencode-ceo",
+    )
+    const prUrl = prResult.success
+      ? prResult.url
+      : branchResult.success
+        ? `branch-only: ${branchName}`
+        : "no-pr"
     const output = `Delivery complete: ${prUrl}`
 
     writeArtifact(ctx.db, pipelineId, "deliver", "pr-url", {
@@ -246,7 +314,7 @@ export async function runDeliverStage(ctx: PipelineStageContext): Promise<StageR
       reviewArtifact,
       testArtifact,
     })
-    runAutoApprovedGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_DELIVERY)
+    runConfigurableGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_DELIVERY, ctx.directory)
     advancePipeline(ctx.db, pipelineId, "completed")
 
     completeStage(ctx.db, stageExecution.id, output)

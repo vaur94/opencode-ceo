@@ -4,6 +4,10 @@ import {
 	executeArtifactRead,
 	executeArtifactWrite,
 } from "./ceo-artifact-tools.js";
+import {
+	executeCeoContextPack,
+	executeCeoContextRestore,
+} from "./ceo-context-tools.js";
 import { executeDecisionLog } from "./ceo-decision-log.js";
 import { executeCeoDelegate } from "./ceo-delegate.js";
 import { executeDeliveryFormat } from "./ceo-delivery-format.js";
@@ -20,23 +24,6 @@ export interface ToolFactoryDeps {
 }
 
 type ToolBuilder = (deps: ToolFactoryDeps) => ToolDefinition;
-type ToolArgs = Parameters<typeof tool>[0]["args"];
-
-const STUB_SUFFIX = ": not yet implemented";
-
-function createStubTool(
-	name: string,
-	description: string,
-	args: ToolArgs,
-): ToolDefinition {
-	return tool({
-		description,
-		args,
-		async execute() {
-			return `[STUB] ${name}${STUB_SUFFIX}`;
-		},
-	});
-}
 
 const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 	[`${TOOL_PREFIX}delegate`]: () =>
@@ -177,21 +164,25 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}context_pack`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}context_pack`,
-			"Pack context for a pipeline handoff.",
-			{
+		tool({
+			description: "Pack context for a pipeline handoff.",
+			args: {
 				pipeline_id: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeCeoContextPack(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}context_restore`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}context_restore`,
-			"Restore packed context into a session.",
-			{
+		tool({
+			description: "Restore packed context into a session.",
+			args: {
 				session_id: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeCeoContextRestore(args, context);
+			},
+		}),
 };
 
 export const CEO_TOOL_NAMES = Object.freeze(Object.keys(TOOL_BUILDERS));

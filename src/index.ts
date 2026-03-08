@@ -3,6 +3,7 @@ import { createAgentDefinitions } from "./agents/agent-factory.js"
 import { createCompactionHandler } from "./context/compaction-handler.js"
 import { packPipelineContext } from "./context/context-packer.js"
 import { TOOL_PREFIX } from "./core/constants.js"
+import { createLogger } from "./core/logger.js"
 import { listArtifacts } from "./state/artifact-manager.js"
 import { getDatabase } from "./state/database.js"
 import { getPipelineBySession } from "./state/pipeline-store.js"
@@ -86,6 +87,7 @@ function getEventSessionID(event: {
 
 const plugin: Plugin = async (input) => {
   const db = getDatabase(input.directory)
+  const logger = createLogger("unknown")
   const handleCompaction = createCompactionHandler(db)
 
   const hooks = {
@@ -111,11 +113,11 @@ const plugin: Plugin = async (input) => {
         const sessionID = getEventSessionID(event as { properties?: Record<string, unknown> })
 
         if (event.type === "session.created") {
-          console.log("[CEO] session started:", sessionID ?? "unknown")
+          logger.logInfo("session.started", { sessionID: sessionID ?? "unknown" })
         }
 
         if (event.type === "session.deleted") {
-          console.log("[CEO] session ended:", sessionID ?? "unknown")
+          logger.logInfo("session.ended", { sessionID: sessionID ?? "unknown" })
         }
       } catch (error) {
         console.error("[CEO] event hook failed:", error)
@@ -181,7 +183,7 @@ const plugin: Plugin = async (input) => {
         const toolName = getToolName(input.tool) ?? "unknown"
         const pipeline = getPipelineBySession(db, input.sessionID)
 
-        console.log("[CEO] tool:", toolName, "pipeline_id:", pipeline?.id ?? "none")
+        logger.logInfo("tool.before", { tool: toolName, pipeline_id: pipeline?.id ?? "none" })
       } catch (error) {
         console.error("[CEO] tool.execute.before hook failed:", error)
       }
@@ -193,7 +195,7 @@ const plugin: Plugin = async (input) => {
         const toolName = getToolName(input.tool) ?? "unknown"
         const success = !(input as { error?: unknown }).error
 
-        console.log("[CEO] tool result:", toolName, "success:", success)
+        logger.logInfo("tool.after", { tool: toolName, success })
       } catch (error) {
         console.error("[CEO] tool.execute.after hook failed:", error)
       }
