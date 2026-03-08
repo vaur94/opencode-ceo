@@ -68,6 +68,149 @@ describe("detectStack", () => {
     })
   })
 
+  test("detects a Rust project from Cargo.toml", () => {
+    const directory = createProject(["Cargo.toml"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "rust",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a Java project from pom.xml", () => {
+    const directory = createProject(["pom.xml"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "java",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a C# project from .csproj", () => {
+    const directory = createProject([".csproj"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "csharp",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a Ruby project from Gemfile", () => {
+    const directory = createProject(["Gemfile"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "ruby",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a PHP project from composer.json", () => {
+    const directory = createProject(["composer.json"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "php",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a Swift project from Package.swift", () => {
+    const directory = createProject(["Package.swift"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "swift",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a Kotlin project from build.gradle.kts", () => {
+    const directory = createProject(["build.gradle.kts"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "java",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a Scala project from build.sbt", () => {
+    const directory = createProject(["build.sbt"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "scala",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects an Elixir project from mix.exs", () => {
+    const directory = createProject(["mix.exs"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "elixir",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a C/C++ project from CMakeLists.txt", () => {
+    const directory = createProject(["CMakeLists.txt"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "c_cpp",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
+  test("detects a Dart project from pubspec.yaml", () => {
+    const directory = createProject(["pubspec.yaml"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "dart",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
   test("returns the default fingerprint for an unknown project", () => {
     const directory = createProject([])
 

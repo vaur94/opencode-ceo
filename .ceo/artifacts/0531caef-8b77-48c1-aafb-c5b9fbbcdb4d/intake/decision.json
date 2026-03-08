@@ -1,0 +1,1 @@
+{"pipelineId":"0531caef-8b77-48c1-aafb-c5b9fbbcdb4d","directory":"/tmp/opencode-ceo-pipeline-NJTTRm","sessionID":"mock-session-id","stack":{"primaryLanguage":"typescript","frameworks":[],"buildTool":"bun run build","testTool":"bun test","packageManager":"bun","specialistAgent":"ceo-ts-specialist"},"summary":"Detected typescript stack for /tmp/opencode-ceo-pipeline-NJTTRm"}
