@@ -1,4 +1,5 @@
 import type { Config } from "@opencode-ai/sdk"
+import { createCeoAgentDefinition } from "./ceo-agent.js"
 import { type AgentId, AGENT_IDS, getAgentContract, getToolRestrictions } from "./agent-registry.js"
 import { getSystemPrompt } from "./system-prompts.js"
 
@@ -20,6 +21,10 @@ const AGENT_NAMES: Record<AgentId, string> = {
 }
 
 function createAgentDefinition(agentId: AgentId): AgentDefinition {
+  if (agentId === "ceo") {
+    return createCeoAgentDefinition()
+  }
+
   const contract = getAgentContract(agentId)
 
   return {
