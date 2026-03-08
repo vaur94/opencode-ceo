@@ -1,12 +1,13 @@
-export type { DelegationRequest, DelegationResult } from "@core/delegation-types"
 import type { Plugin } from "@opencode-ai/plugin"
-import { getDatabase } from "./state/database.js"
 import { createAgentDefinitions } from "./agents/agent-factory.js"
+import { createCompactionHandler } from "./context/compaction-handler.js"
+import { getDatabase } from "./state/database.js"
 import { registerTools } from "./tools/tool-registry.js"
+
+export type { DelegationRequest, DelegationResult } from "@core/delegation-types"
 
 const plugin: Plugin = async (input) => {
   const db = getDatabase(input.directory)
-  void db
 
   const hooks = {
     tool: {},
@@ -46,10 +47,7 @@ const plugin: Plugin = async (input) => {
       void input
       void output
     },
-    "experimental.session.compacting": async (input, output) => {
-      void input
-      void output
-    },
+    "experimental.session.compacting": createCompactionHandler(db),
   }
 }
 
