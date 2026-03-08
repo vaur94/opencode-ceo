@@ -4,6 +4,7 @@ import {
 	executeArtifactRead,
 	executeArtifactWrite,
 } from "./ceo-artifact-tools.js";
+import { executeDecisionLog } from "./ceo-decision-log.js";
 import { executeCeoDelegate } from "./ceo-delegate.js";
 import { executeGateRun, executeGateStatus } from "./ceo-gate-tools.js";
 import { executeStageTransition } from "./ceo-stage-transition.js";
@@ -106,16 +107,18 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}decision_log`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}decision_log`,
-			"Record a decision for a pipeline stage.",
-			{
+		tool({
+			description: "Record a decision for a pipeline stage.",
+			args: {
 				pipeline_id: z.string(),
 				stage: z.string(),
 				decision: z.string(),
 				reasoning: z.string().optional(),
 			},
-		),
+			async execute(args, context) {
+				return executeDecisionLog(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}branch_prepare`]: () =>
 		createStubTool(
 			`${TOOL_PREFIX}branch_prepare`,
