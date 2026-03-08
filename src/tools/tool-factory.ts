@@ -1,6 +1,7 @@
 import { tool, type ToolDefinition } from "@opencode-ai/plugin/tool"
 
 import { TOOL_PREFIX } from "@core/constants"
+import { executeCeoDelegate } from "./ceo-delegate.js"
 
 const z = tool.schema
 
@@ -30,10 +31,16 @@ function createStubTool(
 
 const TOOL_BUILDERS: Record<string, ToolBuilder> = {
   [`${TOOL_PREFIX}delegate`]: () =>
-    createStubTool(`${TOOL_PREFIX}delegate`, "Delegate a task to a CEO sub-agent.", {
-      agent: z.string(),
-      prompt: z.string(),
-      timeout: z.number().optional(),
+    tool({
+      description: "Delegate a task to a CEO sub-agent.",
+      args: {
+        agent: z.string(),
+        prompt: z.string(),
+        timeout: z.number().optional(),
+      },
+      async execute(args, context) {
+        return executeCeoDelegate(args, context)
+      },
     }),
   [`${TOOL_PREFIX}stage_transition`]: () =>
     createStubTool(`${TOOL_PREFIX}stage_transition`, "Transition a pipeline to a target state.", {
