@@ -2,23 +2,30 @@ export type { DelegationRequest, DelegationResult } from "@core/delegation-types
 import type { Plugin } from "@opencode-ai/plugin"
 import { getDatabase } from "./state/database.js"
 import { createAgentDefinitions } from "./agents/agent-factory.js"
+import { registerTools } from "./tools/tool-registry.js"
 
 const plugin: Plugin = async (input) => {
   const db = getDatabase(input.directory)
   void db
 
+  const hooks = {
+    tool: {},
+  }
+
+  registerTools(hooks, {
+    directory: input.directory,
+    worktree: input.worktree,
+  })
+
   return {
     config: async (config) => {
       config.agent ??= {}
       Object.assign(config.agent, createAgentDefinitions())
-
-      return config
     },
     event: async ({ event }) => {
       void event
     },
-    tool: {
-    },
+    tool: hooks.tool,
     "chat.message": async (input, output) => {
       void input
       void output
