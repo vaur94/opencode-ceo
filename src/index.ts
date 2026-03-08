@@ -1,6 +1,7 @@
 export type { DelegationRequest, DelegationResult } from "@core/delegation-types"
 import type { Plugin } from "@opencode-ai/plugin"
 import { getDatabase } from "./state/database.js"
+import { createAgentDefinitions } from "./agents/agent-factory.js"
 
 const plugin: Plugin = async (input) => {
   const db = getDatabase(input.directory)
@@ -8,6 +9,9 @@ const plugin: Plugin = async (input) => {
 
   return {
     config: async (config) => {
+      config.agent ??= {}
+      Object.assign(config.agent, createAgentDefinitions())
+
       return config
     },
     event: async ({ event }) => {
