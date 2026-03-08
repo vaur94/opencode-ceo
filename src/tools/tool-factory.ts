@@ -1,6 +1,7 @@
 import { TOOL_PREFIX } from "@core/constants";
 import { type ToolDefinition, tool } from "@opencode-ai/plugin/tool";
 import { executeCeoDelegate } from "./ceo-delegate.js";
+import { executeGateRun, executeGateStatus } from "./ceo-gate-tools.js";
 import { executeStageTransition } from "./ceo-stage-transition.js";
 
 const z = tool.schema;
@@ -55,22 +56,26 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}gate_run`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}gate_run`,
-			"Run a named gate for a pipeline.",
-			{
+		tool({
+			description: "Run a named gate for a pipeline.",
+			args: {
 				pipeline_id: z.string(),
 				gate_name: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeGateRun(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}gate_status`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}gate_status`,
-			"Read the current gate status for a pipeline.",
-			{
+		tool({
+			description: "Read the current gate status for a pipeline.",
+			args: {
 				pipeline_id: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeGateStatus(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}artifact_write`]: () =>
 		createStubTool(
 			`${TOOL_PREFIX}artifact_write`,
