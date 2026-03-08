@@ -1,5 +1,9 @@
 import { TOOL_PREFIX } from "@core/constants";
 import { type ToolDefinition, tool } from "@opencode-ai/plugin/tool";
+import {
+	executeArtifactRead,
+	executeArtifactWrite,
+} from "./ceo-artifact-tools.js";
 import { executeCeoDelegate } from "./ceo-delegate.js";
 import { executeGateRun, executeGateStatus } from "./ceo-gate-tools.js";
 import { executeStageTransition } from "./ceo-stage-transition.js";
@@ -77,26 +81,30 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}artifact_write`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}artifact_write`,
-			"Write an artifact for a pipeline stage.",
-			{
+		tool({
+			description: "Write an artifact for a pipeline stage.",
+			args: {
 				pipeline_id: z.string(),
 				stage: z.string(),
 				type: z.string(),
 				data: z.record(z.string(), z.unknown()),
 			},
-		),
+			async execute(args, context) {
+				return executeArtifactWrite(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}artifact_read`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}artifact_read`,
-			"Read an artifact for a pipeline stage.",
-			{
+		tool({
+			description: "Read an artifact for a pipeline stage.",
+			args: {
 				pipeline_id: z.string(),
 				stage: z.string(),
 				type: z.string(),
 			},
-		),
+			async execute(args, context) {
+				return executeArtifactRead(args, context);
+			},
+		}),
 	[`${TOOL_PREFIX}decision_log`]: () =>
 		createStubTool(
 			`${TOOL_PREFIX}decision_log`,
