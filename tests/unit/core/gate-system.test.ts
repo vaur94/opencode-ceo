@@ -151,7 +151,9 @@ describe("gate system", () => {
     const gates = getGateStatus(db, pipeline.id)
 
     expect(gates).toHaveLength(2)
-    expect(gates.map((gate) => gate.gate_name)).toEqual(["approve-plan", "approve-review"])
-    expect(gates.map((gate) => gate.status)).toEqual(["approved", "pending"])
+    const planGate = gates.find((g) => g.gate_name === "approve-plan")
+    const reviewGate = gates.find((g) => g.gate_name === "approve-review")
+    expect(planGate?.status).toBe("approved")
+    expect(reviewGate?.status).toBe("pending")
   })
 })

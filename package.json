@@ -1,8 +1,32 @@
 {
   "name": "opencode-ceo",
   "version": "0.1.0",
+  "description": "Transform OpenCode into a deterministic software company operating system",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "ai",
+    "orchestration",
+    "pipeline"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ugurkellecioglu/opencode-ceo"
+  },
+  "author": "opencode-ceo contributors",
+  "license": "MIT",
   "module": "src/index.ts",
   "type": "module",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
     "test": "bun test",
