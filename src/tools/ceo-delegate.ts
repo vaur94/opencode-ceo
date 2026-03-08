@@ -164,6 +164,10 @@ export async function executeCeoDelegate(
         },
       })
 
+      if (!createResult.data?.id) {
+        return "Error: Sub-session creation returned no session ID"
+      }
+
       sessionID = createResult.data.id
     } catch (error) {
       const message = extractErrorMessage(error)
@@ -192,11 +196,26 @@ export async function executeCeoDelegate(
     }
 
     if (!(await waitForSessionCompletion(context.client.session, sessionID, context.directory, timeout))) {
-      try {
-        await abortSession(context.client.session, sessionID, context.directory)
-      } catch {}
+      const retryCompleted = await waitForSessionCompletion(
+        context.client.session,
+        sessionID,
+        context.directory,
+        Math.floor(timeout / 2),
+      )
 
-      return `Error: Delegation to ${agent} timed out after ${timeout}ms`
+      if (!retryCompleted) {
+        try {
+          await abortSession(context.client.session, sessionID, context.directory)
+        } catch {}
+
+        const totalWait = timeout + Math.floor(timeout / 2)
+
+        if (timeout === 0) {
+          return `Error: Delegation to ${agent} timed out after ${timeout}ms`
+        }
+
+        return `Error: Delegation to ${agent} timed out after ${totalWait}ms (with retry)`
+      }
     }
 
     try {
