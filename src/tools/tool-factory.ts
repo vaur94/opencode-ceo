@@ -6,12 +6,10 @@ import {
 } from "./ceo-artifact-tools.js";
 import { executeDecisionLog } from "./ceo-decision-log.js";
 import { executeCeoDelegate } from "./ceo-delegate.js";
+import { executeDeliveryFormat } from "./ceo-delivery-format.js";
 import { executeGateRun, executeGateStatus } from "./ceo-gate-tools.js";
 import { executeBranchPrepare, executePrPrepare } from "./ceo-git-tools.js";
-import {
-	executeRepoFingerprint,
-	executeStackDetect,
-} from "./ceo-repo-tools.js";
+import { executeRepoFingerprint, executeStackDetect } from "./ceo-repo-tools.js";
 import { executeStageTransition } from "./ceo-stage-transition.js";
 
 const z = tool.schema;
@@ -168,14 +166,16 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 			},
 		}),
 	[`${TOOL_PREFIX}delivery_format`]: () =>
-		createStubTool(
-			`${TOOL_PREFIX}delivery_format`,
-			"Format delivery output for a pipeline.",
-			{
+		tool({
+			description: "Format delivery output for a pipeline.",
+			args: {
 				pipeline_id: z.string(),
 				format: z.string().optional(),
 			},
-		),
+			async execute(args, context) {
+				return executeDeliveryFormat(args, context)
+			},
+		}),
 	[`${TOOL_PREFIX}context_pack`]: () =>
 		createStubTool(
 			`${TOOL_PREFIX}context_pack`,
