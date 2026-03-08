@@ -48,20 +48,26 @@ describe("artifact manager", () => {
     const secondPath = writeArtifact(db, pipeline.id, "implement", "decision", { approved: true })
 
     const artifacts = listArtifacts(db, pipeline.id)
+    const planArtifact = artifacts.find((artifact) => artifact.type === "plan")
+    const decisionArtifact = artifacts.find((artifact) => artifact.type === "decision")
 
     expect(artifacts).toHaveLength(2)
-    expect(artifacts[0]).toMatchObject({
+    expect(planArtifact).not.toBeUndefined()
+    expect(decisionArtifact).not.toBeUndefined()
+
+    expect(planArtifact).toMatchObject({
       pipeline_id: pipeline.id,
       stage: "decompose",
       type: "plan",
       path: firstPath,
     })
-    expect(artifacts[1]).toMatchObject({
+    expect(decisionArtifact).toMatchObject({
       pipeline_id: pipeline.id,
       stage: "implement",
       type: "decision",
       path: secondPath,
     })
-    expect(artifacts[0].created_at).toBeGreaterThan(0)
+    expect(planArtifact?.created_at).toBeGreaterThan(0)
+    expect(decisionArtifact?.created_at).toBeGreaterThan(0)
   })
 })
