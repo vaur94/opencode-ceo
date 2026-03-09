@@ -26,7 +26,11 @@ Project maintainers are responsible for clarifying and enforcing this Code of Co
 
 ## Reporting
 
-If you experience or witness unacceptable behavior, report it to the maintainers through GitHub using a private channel whenever possible. Public issue threads should not be used for sensitive reports.
+If you experience or witness unacceptable behavior:
+
+1. do not use public issue threads for sensitive reports
+2. contact the maintainer privately through GitHub
+3. if the report overlaps with a security issue, follow `SECURITY.md` instead
 
 ## Scope
 

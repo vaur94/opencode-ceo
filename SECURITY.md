@@ -10,8 +10,8 @@ Please do not open public GitHub issues for security reports.
 
 Instead:
 
-1. use GitHub's private vulnerability reporting flow if it is enabled for the repository
-2. otherwise contact the maintainers through a private GitHub channel before public disclosure
+1. use the repository's GitHub Security reporting flow if the Security tab exposes "Report a vulnerability"
+2. if that flow is unavailable, contact the maintainer privately through GitHub before public disclosure
 
 When reporting a vulnerability, include:
 
@@ -24,5 +24,6 @@ We will acknowledge valid reports as quickly as possible and coordinate disclosu
 
 ## Related Documents
 
-- `SUPPORT.md`
-- `CONTRIBUTING.md`
+- [Support](./SUPPORT.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Governance and Branch Policy](./docs/en/governance-guide.md)
