@@ -32,7 +32,7 @@ describe("ceo_context_tools", () => {
   })
 
   afterEach(() => {
-    db?.close(false)
+		db?.close()
     db = null
     getDatabaseMock.mockClear()
   })

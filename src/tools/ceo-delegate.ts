@@ -1,4 +1,5 @@
 import type { PluginInput } from "@opencode-ai/plugin"
+import type { ToolContext as PluginToolContext } from "@opencode-ai/plugin/tool"
 
 import {
   DELEGATION_TIMEOUT_MS,
@@ -9,10 +10,8 @@ import { AGENT_IDS, getToolRestrictions, isValidDelegationTarget } from "../agen
 
 type SessionClient = PluginInput["client"]["session"]
 
-export interface ToolContext {
+export type ToolContext = Pick<PluginToolContext, "directory" | "sessionID"> & {
   client: PluginInput["client"]
-  directory: string
-  sessionID: string
 }
 
 export interface CeoDelegateParams {
@@ -23,7 +22,6 @@ export interface CeoDelegateParams {
 
 type SessionStatusMap = Record<string, { type?: string }>
 type SessionMessagePart = { type: string; text?: string }
-type SessionMessage = { role: string; parts: SessionMessagePart[] }
 
 let activeDelegations = 0
 const delegationWaiters: Array<() => void> = []
@@ -125,13 +123,25 @@ async function getAssistantOutput(
     },
   })
 
-  const messages = (result.data ?? []) as SessionMessage[]
+  const messages = Array.isArray(result.data) ? result.data : []
 
   const output = messages
-    .filter((message) => message.role === "assistant")
-    .flatMap((message) => message.parts)
+    .filter((message) => {
+      if (!message || typeof message !== "object") {
+        return false
+      }
+
+      if ("role" in message && message.role === "assistant") {
+        return true
+      }
+
+      const info = "info" in message ? message.info : undefined
+      return !!info && typeof info === "object" && "role" in info && info.role === "assistant"
+    })
+    .flatMap((message) => (Array.isArray(message.parts) ? message.parts : []))
+    .filter((part) => part && typeof part === "object" && "type" in part)
     .filter((part) => part.type === "text")
-    .map((part) => part.text ?? "")
+    .map((part) => ("text" in part && typeof part.text === "string" ? part.text : ""))
     .join("\n")
     .trim()
 

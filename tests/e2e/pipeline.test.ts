@@ -94,6 +94,10 @@ function createContext(): PipelineStageContext {
     directory,
     sessionID: toolContext.sessionID,
     db,
+    delegate: async (agent, prompt) => `${agent}: ${prompt}`,
+    prepareBranch: async (_directory, pipelineId, slug) => ({ success: true, branchName: `ceo/${pipelineId}/${slug}` }),
+    preparePr: async () => ({ success: true, url: "https://github.com/example/repo/pull/1" }),
+    ask: async () => {},
   }
 }
 

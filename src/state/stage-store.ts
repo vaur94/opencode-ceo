@@ -91,7 +91,7 @@ export function getStageHistory(db: Database, pipelineId: string): StageExecutio
     .query<StageExecution, [string]>(
       `SELECT * FROM stage_executions
         WHERE pipeline_id = ?1
-        ORDER BY started_at ASC, id ASC`,
+        ORDER BY started_at ASC, rowid ASC`,
     )
     .all(pipelineId)
 }

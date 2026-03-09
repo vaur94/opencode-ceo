@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { TOOL_PREFIX } from "../../../src/core/constants.ts";
-import { createPipeline, getPipeline } from "../../../src/state/pipeline-store.ts";
-import { createTestDatabase } from "../../helpers/test-utils.ts";
+import { createPipeline, getPipeline, updatePipelineState } from "../../../src/state/pipeline-store.ts";
+import {
+	createMockPluginInput,
+	createMockToolExecutionContext,
+	createTestDatabase,
+} from "../../helpers/test-utils.ts";
 
 const getDatabaseMock = mock(() => createTestDatabase());
 
@@ -22,9 +26,9 @@ describe("ceo_gate_tools", () => {
 		getDatabaseMock.mockImplementation(() => createTestDatabase());
 	});
 
-	afterEach(() => {
-		const db = getDatabaseMock.mock.results.at(-1)?.value;
-		db?.close(false);
+		afterEach(() => {
+		const db = getDatabaseMock.mock.results.at(-1)?.value as ReturnType<typeof createTestDatabase> | undefined;
+		db?.close();
 		getDatabaseMock.mockClear();
 	});
 
@@ -41,6 +45,7 @@ describe("ceo_gate_tools", () => {
 			},
 			{
 				directory: "/repo",
+				ask: async () => {},
 			},
 		);
 
@@ -63,6 +68,7 @@ describe("ceo_gate_tools", () => {
 				autonomy: "gated",
 			}),
 		);
+		updatePipelineState(db, pipeline.id, "review");
 		getDatabaseMock.mockImplementation(() => db);
 
 		const result = await executeGateRun(
@@ -100,6 +106,7 @@ describe("ceo_gate_tools", () => {
 			},
 			{
 				directory: "/repo",
+				ask: async () => {},
 			},
 		);
 
@@ -137,6 +144,7 @@ describe("ceo_gate_tools", () => {
 			},
 			{
 				directory: "/repo",
+				ask: async () => {},
 			},
 		);
 
@@ -153,7 +161,7 @@ describe("ceo_gate_tools", () => {
 		]);
 	});
 
-	test("tool factory wires both gate tools to the real implementations", async () => {
+		test("tool factory wires both gate tools to the real implementations", async () => {
 		const db = createTestDatabase();
 		const pipeline = createPipeline(db, "session-5", "Ship task 18");
 
@@ -162,29 +170,63 @@ describe("ceo_gate_tools", () => {
 		const definitions = createToolDefinitions({
 			directory: "/repo",
 			worktree: "/repo",
+			client: createMockPluginInput().client,
 		});
+		const gateRunTool = definitions[`${TOOL_PREFIX}gate_run`];
+		const gateStatusTool = definitions[`${TOOL_PREFIX}gate_status`];
 
-		const runResult = await definitions[`${TOOL_PREFIX}gate_run`].execute(
+		if (!gateRunTool || !gateStatusTool) {
+			throw new Error("Expected both CEO gate tools to be registered");
+		}
+
+		const runResult = await gateRunTool.execute(
 			{
 				pipeline_id: pipeline.id,
 				gate_name: "approve-plan",
 			},
-			{
-				directory: "/repo",
-				sessionID: "session-5",
-			},
+			createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "session-5" }),
 		);
-		const statusResult = await definitions[`${TOOL_PREFIX}gate_status`].execute(
+		const statusResult = await gateStatusTool.execute(
 			{
 				pipeline_id: pipeline.id,
 			},
-			{
-				directory: "/repo",
-				sessionID: "session-5",
-			},
+			createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "session-5" }),
 		);
 
 		expect(runResult).toBe('Gate "approve-plan" approved. Pipeline continues.');
 		expect(statusResult).toBe("No gates configured for this pipeline.");
+	});
+
+	test("manual gate uses ask and resolves approval when available", async () => {
+		const db = createTestDatabase();
+		const pipeline = createPipeline(db, "session-6", "Ship task 18");
+
+		db.prepare("UPDATE pipeline_runs SET metadata = ?2 WHERE id = ?1").run(
+			pipeline.id,
+			JSON.stringify({
+				gates: {
+					"approve-review": { autoApprove: false },
+				},
+				autonomy: "gated",
+			}),
+		);
+		getDatabaseMock.mockImplementation(() => db);
+
+		const ask = mock(async () => {});
+		const result = await executeGateRun(
+			{ pipeline_id: pipeline.id, gate_name: "approve-review" },
+			{ directory: "/repo", ask },
+		);
+
+		expect(result).toBe('Gate "approve-review" approved. Pipeline continues.');
+		expect(ask).toHaveBeenCalledTimes(1);
+		expect(getPipeline(db, pipeline.id)?.state).not.toBe("blocked");
+		expect(
+			db
+				.query(
+					"SELECT status FROM gates WHERE pipeline_id = ?1 ORDER BY requested_at ASC, id ASC",
+				)
+				.all(pipeline.id),
+		).toEqual([{ status: "approved" }]);
 	});
 });

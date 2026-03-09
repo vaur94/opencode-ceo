@@ -98,7 +98,7 @@ describe("pipeline FSM", () => {
     expect(() => resumePipeline(db, "missing-pipeline")).toThrow("Pipeline not found: missing-pipeline")
   })
 
-  test("resumePipeline returns an interrupted pipeline without changing state", () => {
+  test("resumePipeline restores the last stage state for interrupted pipelines", () => {
     const pipeline = createNewPipeline(db, "session-interrupted", "Resume interrupted pipeline")
 
     createStageExecution(db, pipeline.id, "decompose")
@@ -107,8 +107,7 @@ describe("pipeline FSM", () => {
 
     const resumed = resumePipeline(db, pipeline.id)
 
-    expect(resumed.state).toBe("interrupted")
-    expect(resumed.previous_state).toBe("intake")
+    expect(resumed.state).toBe("implement")
     expect(getStageHistory(db, pipeline.id)).toHaveLength(2)
   })
 

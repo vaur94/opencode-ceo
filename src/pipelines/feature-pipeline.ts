@@ -1,7 +1,8 @@
 import type { Database } from "bun:sqlite"
 
-import { AGENT_IDS } from "../agents/agent-registry.js"
+import type { CeoConfig } from "../core/config.js"
 import { GATE_NAMES } from "../core/constants.js"
+import { approveGate, denyGate } from "../core/gate-system.js"
 import { checkGate } from "../core/gate-system.js"
 import { loadConfig } from "../core/config.js"
 import { validateTransition } from "../core/pipeline-fsm.js"
@@ -19,6 +20,17 @@ export type PipelineStageContext = {
   directory: string
   sessionID: string
   db: Database
+  goal?: string
+  config?: CeoConfig
+  delegate?: (agent: string, prompt: string) => Promise<string>
+  prepareBranch?: (directory: string, pipelineId: string, slug: string) => Promise<{ success: true; branchName: string } | { success: false; error: string }>
+  preparePr?: (directory: string, title: string, body: string) => Promise<{ success: true; url: string } | { success: false; error: string }>
+  ask?: (input: {
+    permission: string
+    patterns: string[]
+    always: string[]
+    metadata: Record<string, unknown>
+  }) => Promise<void>
 }
 
 export type StageResult = {
@@ -43,7 +55,24 @@ function ensurePipelineId(ctx: PipelineStageContext, stage: PipelineState): stri
     throw new Error(`Pipeline not found: ${ctx.pipelineId}`)
   }
 
-  return createNewPipeline(ctx.db, ctx.sessionID, `Feature pipeline for ${ctx.directory}`).id
+  const pipeline = createNewPipeline(
+    ctx.db,
+    ctx.sessionID,
+    ctx.goal ?? `Feature pipeline for ${ctx.directory}`,
+  )
+
+  if (ctx.config) {
+    ctx.db
+      .prepare(
+        `UPDATE pipeline_runs
+          SET metadata = ?2,
+              updated_at = ?3
+          WHERE id = ?1`,
+      )
+      .run(pipeline.id, JSON.stringify({ config: ctx.config }), Date.now())
+  }
+
+  return pipeline.id
 }
 
 function advancePipeline(db: Database, pipelineId: string, targetState: PipelineState): void {
@@ -62,6 +91,18 @@ function advancePipeline(db: Database, pipelineId: string, targetState: Pipeline
   }
 
   updatePipelineState(db, pipelineId, targetState)
+}
+
+async function runDelegation(
+  ctx: PipelineStageContext,
+  agent: string,
+  prompt: string,
+): Promise<string> {
+  if (!ctx.delegate) {
+    throw new Error(`Missing delegation handler for ${agent}`)
+  }
+
+  return ctx.delegate(agent, prompt)
 }
 
 function requireArtifact(
@@ -121,31 +162,41 @@ function parseGateConfig(metadata: string | null, gateName: string): GateConfigV
 }
 
 function runConfigurableGate(
-  db: Database,
+  ctx: PipelineStageContext,
   pipelineId: string,
   gateName: string,
-  directory: string,
-): void {
-  void directory
-  const pipeline = getPipeline(db, pipelineId)
+): Promise<void> | void {
+  const pipeline = getPipeline(ctx.db, pipelineId)
 
   if (!pipeline) {
     throw new Error(`Pipeline not found: ${pipelineId}`)
   }
 
-  const result = checkGate(db, pipelineId, gateName, parseGateConfig(pipeline.metadata, gateName))
+  const result = checkGate(ctx.db, pipelineId, gateName, parseGateConfig(pipeline.metadata, gateName))
 
   if (!result.approved) {
-    throw new Error(result.reason)
-  }
-}
+    if (!ctx.ask) {
+      throw new Error(result.reason)
+    }
 
-function delegateStub(agentId: string, summary: string): string {
-  if (!AGENT_IDS.includes(agentId as (typeof AGENT_IDS)[number])) {
-    throw new Error(`Unknown delegation target: ${agentId}`)
+    return ctx.ask({
+      permission: `Approve gate ${gateName}`,
+      patterns: [gateName],
+      always: [],
+      metadata: {
+        pipeline_id: pipelineId,
+        gate_id: result.gateId,
+      },
+    }).then(
+      () => {
+        approveGate(ctx.db, result.gateId)
+      },
+      (error) => {
+        denyGate(ctx.db, result.gateId)
+        throw error
+      },
+    )
   }
-
-  return `${agentId} stub: ${summary}`
 }
 
 function failureResult(error: unknown): StageResult {
@@ -189,14 +240,14 @@ export async function runDecomposeStage(ctx: PipelineStageContext): Promise<Stag
 
   try {
     const intakeArtifact = requireArtifact(ctx.db, pipelineId, "intake", "decision")
-    const plan = delegateStub("ceo-architect", `planned work for ${pipelineId}`)
+    const plan = await runDelegation(ctx, "ceo-architect", `planned work for ${pipelineId}`)
 
     writeArtifact(ctx.db, pipelineId, "decompose", "plan", {
       input: intakeArtifact,
       agent: "ceo-architect",
       plan,
     })
-    runConfigurableGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_PLAN, ctx.directory)
+    await runConfigurableGate(ctx, pipelineId, GATE_NAMES.APPROVE_PLAN)
     advancePipeline(ctx.db, pipelineId, "implement")
 
     completeStage(ctx.db, stageExecution.id, plan)
@@ -214,7 +265,7 @@ export async function runImplementStage(ctx: PipelineStageContext): Promise<Stag
 
   try {
     const planArtifact = requireArtifact(ctx.db, pipelineId, "decompose", "plan")
-    const implementation = delegateStub("ceo-implementer", `implemented plan for ${pipelineId}`)
+    const implementation = await runDelegation(ctx, "ceo-implementer", `implemented plan for ${pipelineId}`)
 
     writeArtifact(ctx.db, pipelineId, "implement", "code-diff", {
       input: planArtifact,
@@ -238,14 +289,14 @@ export async function runReviewStage(ctx: PipelineStageContext): Promise<StageRe
 
   try {
     const codeChangeArtifact = requireArtifact(ctx.db, pipelineId, "implement", "code-diff")
-    const review = delegateStub("ceo-reviewer", `reviewed implementation for ${pipelineId}`)
+    const review = await runDelegation(ctx, "ceo-reviewer", `reviewed implementation for ${pipelineId}`)
 
     writeArtifact(ctx.db, pipelineId, "review", "review", {
       input: codeChangeArtifact,
       agent: "ceo-reviewer",
       findings: review,
     })
-    runConfigurableGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_REVIEW, ctx.directory)
+    await runConfigurableGate(ctx, pipelineId, GATE_NAMES.APPROVE_REVIEW)
     advancePipeline(ctx.db, pipelineId, "test")
 
     completeStage(ctx.db, stageExecution.id, review)
@@ -263,7 +314,7 @@ export async function runTestStage(ctx: PipelineStageContext): Promise<StageResu
 
   try {
     const reviewArtifact = requireArtifact(ctx.db, pipelineId, "review", "review")
-    const testReport = delegateStub("ceo-tester", `validated review findings for ${pipelineId}`)
+    const testReport = await runDelegation(ctx, "ceo-tester", `validated review findings for ${pipelineId}`)
 
     writeArtifact(ctx.db, pipelineId, "test", "test-result", {
       input: reviewArtifact,
@@ -291,9 +342,9 @@ export async function runDeliverStage(ctx: PipelineStageContext): Promise<StageR
     const codeChangeArtifact = requireArtifact(ctx.db, pipelineId, "implement", "code-diff")
     const reviewArtifact = requireArtifact(ctx.db, pipelineId, "review", "review")
     const testArtifact = requireArtifact(ctx.db, pipelineId, "test", "test-result")
-    const branchResult = await createBranch(ctx.directory, pipelineId, "feature")
+    const branchResult = await (ctx.prepareBranch ?? createBranch)(ctx.directory, pipelineId, "feature")
     const branchName = branchResult.success ? branchResult.branchName : "ceo/no-git"
-    const prResult = await createPR(
+    const prResult = await (ctx.preparePr ?? createPR)(
       ctx.directory,
       "CEO: Feature delivery",
       "Automated delivery by opencode-ceo",
@@ -314,7 +365,13 @@ export async function runDeliverStage(ctx: PipelineStageContext): Promise<StageR
       reviewArtifact,
       testArtifact,
     })
-    runConfigurableGate(ctx.db, pipelineId, GATE_NAMES.APPROVE_DELIVERY, ctx.directory)
+    await runConfigurableGate(ctx, pipelineId, GATE_NAMES.APPROVE_DELIVERY)
+
+    if (!branchResult.success || !prResult.success) {
+	  const deliveryError = branchResult.success ? (prResult.success ? "unknown delivery failure" : prResult.error) : branchResult.error
+	  throw new Error(`Delivery failed: ${deliveryError}`)
+    }
+
     advancePipeline(ctx.db, pipelineId, "completed")
 
     completeStage(ctx.db, stageExecution.id, output)

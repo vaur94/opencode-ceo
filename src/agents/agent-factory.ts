@@ -1,4 +1,5 @@
 import type { Config } from "@opencode-ai/sdk"
+import type { CeoConfig } from "../core/config.js"
 import { createCeoAgentDefinition } from "./ceo-agent.js"
 import { type AgentId, AGENT_IDS, getAgentContract, getToolRestrictions } from "./agent-registry.js"
 import { getSystemPrompt } from "./system-prompts.js"
@@ -37,8 +38,8 @@ function createAgentDefinition(agentId: AgentId): AgentDefinition {
   }
 }
 
-export function createAgentDefinitions(): Record<string, AgentDefinition> {
+export function createAgentDefinitions(config?: CeoConfig): Record<string, AgentDefinition> {
   return Object.fromEntries(
-    AGENT_IDS.map((agentId) => [agentId, createAgentDefinition(agentId)]),
+    AGENT_IDS.filter((agentId) => !config?.disabledAgents.includes(agentId)).map((agentId) => [agentId, createAgentDefinition(agentId)]),
   )
 }

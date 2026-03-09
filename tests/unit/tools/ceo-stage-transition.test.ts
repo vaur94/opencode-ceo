@@ -1,3 +1,4 @@
+import type { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { TOOL_PREFIX } from "../../../src/core/constants.ts";
@@ -5,7 +6,11 @@ import {
 	createPipeline,
 	getPipeline,
 } from "../../../src/state/pipeline-store.ts";
-import { createTestDatabase } from "../../helpers/test-utils.ts";
+import {
+	createMockPluginInput,
+	createMockToolExecutionContext,
+	createTestDatabase,
+} from "../../helpers/test-utils.ts";
 
 const getDatabaseMock = mock(() => createTestDatabase());
 
@@ -29,14 +34,13 @@ type DecisionRow = {
 
 function getDecisionRows() {
 	return (
-		getDatabaseMock.mock.results
-			.at(-1)
-			?.value.query<DecisionRow, []>(
+		((getDatabaseMock.mock.results.at(-1)?.value as Database | undefined)
+			?.query<DecisionRow, []>(
 				`SELECT pipeline_id, stage, decision, reasoning
        FROM decisions
-       ORDER BY created_at ASC, id ASC`,
+				 ORDER BY created_at ASC, id ASC`,
 			)
-			.all() ?? []
+			.all() ?? [])
 	);
 }
 
@@ -46,8 +50,8 @@ describe("ceo_stage_transition", () => {
 	});
 
 	afterEach(() => {
-		const db = getDatabaseMock.mock.results.at(-1)?.value;
-		db?.close(false);
+		const db = getDatabaseMock.mock.results.at(-1)?.value as Database | undefined;
+		db?.close();
 		getDatabaseMock.mockClear();
 	});
 
@@ -154,18 +158,16 @@ describe("ceo_stage_transition", () => {
 		const definitions = createToolDefinitions({
 			directory: "/repo",
 			worktree: "/repo",
+			client: createMockPluginInput().client,
 		});
 
-		const result = await definitions[`${TOOL_PREFIX}stage_transition`].execute(
+		const result = await definitions[`${TOOL_PREFIX}stage_transition`]!.execute(
 			{
 				pipeline_id: pipeline.id,
 				target_state: "decompose",
 				reason: "Factory path",
 			},
-			{
-				directory: "/repo",
-				sessionID: "session-4",
-			},
+			createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "session-4" }),
 		);
 
 		expect(result).toBe(

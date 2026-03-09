@@ -3,6 +3,7 @@ import { describe, expect, mock, test } from "bun:test"
 import { TOOL_PREFIX } from "../../../src/core/constants.ts"
 import { executeCeoDelegate, type ToolContext } from "../../../src/tools/ceo-delegate.ts"
 import { createToolDefinitions } from "../../../src/tools/tool-factory.ts"
+import { createMockToolExecutionContext } from "../../helpers/test-utils.ts"
 
 type MockCall<TArgs> = TArgs extends undefined ? [] : [TArgs]
 
@@ -27,7 +28,7 @@ function createMockContext(overrides?: Record<string, unknown>): ToolContext {
   }
 
   return {
-    client: { session } as ToolContext["client"],
+    client: { session } as unknown as ToolContext["client"],
     directory: "/repo",
     sessionID: "parent-session-id",
   }
@@ -51,8 +52,8 @@ describe("ceo_delegate", () => {
 
     expect(result).toBe("Done!")
 
-    const createArgs = firstCall<CreateArgs>(context.client.session.create)
-    const promptArgs = firstCall<PromptArgs>(context.client.session.promptAsync)
+    const createArgs = firstCall<CreateArgs>(context.client.session.create as unknown as { mock: { calls: MockCall<CreateArgs>[] } })
+    const promptArgs = firstCall<PromptArgs>(context.client.session.promptAsync as unknown as { mock: { calls: MockCall<PromptArgs>[] } })
 
     expect(createArgs.body).toMatchObject({
       parentID: "parent-session-id",
@@ -121,25 +122,27 @@ describe("ceo_delegate", () => {
 
     expect(result).toBe("Error: Delegation to ceo-tester timed out after 0ms")
     expect(context.client.session.abort).toHaveBeenCalledTimes(1)
-    expect(firstCall<AbortArgs>(context.client.session.abort)).toEqual({
+    expect(firstCall<AbortArgs>(context.client.session.abort as unknown as { mock: { calls: MockCall<AbortArgs>[] } })).toEqual({
       path: { id: "mock-session-id" },
       query: { directory: "/repo" },
     })
   })
 
   test("tool factory wires ceo_delegate to the real implementation", async () => {
+    const context = createMockContext()
     const definitions = createToolDefinitions({
       directory: "/repo",
       worktree: "/repo",
+      client: context.client,
     })
-    const context = createMockContext()
+    const toolContext = createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "parent-session-id" })
 
-    const result = await definitions[`${TOOL_PREFIX}delegate`].execute(
+    const result = await definitions[`${TOOL_PREFIX}delegate`]!.execute(
       {
         agent: "ceo-architect",
         prompt: "Plan this change",
       },
-      context,
+      toolContext,
     )
 
     expect(result).toBe("Done!")

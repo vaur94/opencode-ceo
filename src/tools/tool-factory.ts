@@ -1,3 +1,6 @@
+import type { PluginInput } from "@opencode-ai/plugin";
+import type { ToolContext as PluginToolContext } from "@opencode-ai/plugin/tool";
+
 import { TOOL_PREFIX } from "@core/constants";
 import { type ToolDefinition, tool } from "@opencode-ai/plugin/tool";
 import {
@@ -21,11 +24,22 @@ const z = tool.schema;
 export interface ToolFactoryDeps {
 	directory: string;
 	worktree: string;
+	client: PluginInput["client"];
 }
 
 type ToolBuilder = (deps: ToolFactoryDeps) => ToolDefinition;
 
-const TOOL_BUILDERS: Record<string, ToolBuilder> = {
+
+function toDelegateContext(context: PluginToolContext, deps: ToolFactoryDeps) {
+	return {
+		client: deps.client,
+		directory: context.directory,
+		sessionID: context.sessionID,
+	};
+}
+
+function createToolBuilders(deps: ToolFactoryDeps): Record<string, ToolBuilder> {
+	return {
 	[`${TOOL_PREFIX}delegate`]: () =>
 		tool({
 			description: "Delegate a task to a CEO sub-agent.",
@@ -35,7 +49,7 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 				timeout: z.number().optional(),
 			},
 			async execute(args, context) {
-				return executeCeoDelegate(args, context);
+				return executeCeoDelegate(args, toDelegateContext(context, deps));
 			},
 		}),
 	[`${TOOL_PREFIX}stage_transition`]: () =>
@@ -183,18 +197,33 @@ const TOOL_BUILDERS: Record<string, ToolBuilder> = {
 				return executeCeoContextRestore(args, context);
 			},
 		}),
-};
+  };
+}
 
-export const CEO_TOOL_NAMES = Object.freeze(Object.keys(TOOL_BUILDERS));
+export const CEO_TOOL_NAMES = Object.freeze([
+	`${TOOL_PREFIX}delegate`,
+	`${TOOL_PREFIX}stage_transition`,
+	`${TOOL_PREFIX}gate_run`,
+	`${TOOL_PREFIX}gate_status`,
+	`${TOOL_PREFIX}artifact_write`,
+	`${TOOL_PREFIX}artifact_read`,
+	`${TOOL_PREFIX}decision_log`,
+	`${TOOL_PREFIX}branch_prepare`,
+	`${TOOL_PREFIX}pr_prepare`,
+	`${TOOL_PREFIX}repo_fingerprint`,
+	`${TOOL_PREFIX}stack_detect`,
+	`${TOOL_PREFIX}delivery_format`,
+	`${TOOL_PREFIX}context_pack`,
+	`${TOOL_PREFIX}context_restore`,
+]);
 
 export function createToolDefinitions(
 	deps: ToolFactoryDeps,
 ): Record<string, ToolDefinition> {
-	void deps.directory;
-	void deps.worktree;
+	const toolBuilders = createToolBuilders(deps);
 
 	return Object.fromEntries(
-		Object.entries(TOOL_BUILDERS).map(([name, buildTool]) => [
+		Object.entries(toolBuilders).map(([name, buildTool]) => [
 			name,
 			buildTool(deps),
 		]),

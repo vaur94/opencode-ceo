@@ -102,6 +102,6 @@ The plugin maintains its state in a local SQLite database (`.ceo/state.db`).
 To handle context window limits, `opencode-ceo` implements a "State-First" architecture:
 
 1.  **Stateless Sessions**: The CEO agent doesn't rely on long-term conversation history.
-2.  **Explicit Context Packing**: Every stage concludes with `ceo_context_pack`, which distills relevant findings into the database.
-3.  **Restoration Points**: Upon context compaction or session restart, `ceo_context_restore` pulls the necessary state from SQLite back into the active context.
-4.  **Artifact Persistence**: Large data (like full code diffs or logs) is stored in the file system and only summarized in the context, preserving tokens.
+2.  **Runtime Hook Orchestration**: The `chat.message` hook creates or resumes the current pipeline and advances it until it reaches `blocked`, `failed`, or `completed`.
+3.  **Compaction Integration**: `experimental.session.compacting` injects a packed SQLite-backed summary into compaction context, and `ceo_context_restore` rebuilds state from SQLite on resume.
+4.  **Artifact Persistence**: Large data (like full code diffs or logs) is stored in the file system and summarized into compact runtime context, preserving tokens.
