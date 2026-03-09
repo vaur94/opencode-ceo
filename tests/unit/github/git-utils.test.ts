@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { $ } from "bun"
 
 import {
@@ -13,7 +13,7 @@ import {
 } from "../../../src/github/git-utils.ts"
 
 const testDirectories: string[] = []
-const projectDirectory = "/home/ugur/Projects/opencode-ceo"
+const projectDirectory = resolve(import.meta.dir, "../../..")
 
 function createTempDirectory(prefix: string): string {
   const directory = mkdtempSync(join(tmpdir(), prefix))
@@ -54,8 +54,10 @@ describe("git-utils", () => {
   })
 
   test("getCurrentBranch returns a non-empty branch name", async () => {
-    expect(await getCurrentBranch(projectDirectory)).not.toHaveLength(0)
-  })
+		const directory = await createGitRepo("opencode-ceo-current-branch-")
+
+		expect(await getCurrentBranch(directory)).not.toHaveLength(0)
+	})
 
   test("hasRemote resolves to a boolean without throwing", async () => {
     const result = await hasRemote(projectDirectory)

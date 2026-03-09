@@ -24,10 +24,10 @@ bun run ci:verify
 
 ## Inceleme Kurallari
 
-- `main` branch'i icin en az bir onay gerekir
-- code owner incelemesi branch protection ile istenir
+- `main` branch'i icin pull request zorunludur
 - zorunlu CI kontrolleri gecmeden merge yapilamaz
-- PR degistiginde eski onaylar gecersiz olur
+- tum konusmalar cozulmeden merge yapilamaz
+- `main` branch'inde lineer history korunur ve force-push engellenir
 
 ## Merge Rehberi
 
