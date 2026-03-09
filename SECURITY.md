@@ -21,3 +21,8 @@ When reporting a vulnerability, include:
 - impact assessment and any suggested remediation
 
 We will acknowledge valid reports as quickly as possible and coordinate disclosure after a fix is available.
+
+## Related Documents
+
+- `SUPPORT.md`
+- `CONTRIBUTING.md`

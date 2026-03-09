@@ -25,12 +25,15 @@ bun run ci:verify
 4. Run `bun run ci:verify` before opening a pull request.
 5. Use the pull request template to explain the change, validation, and any compatibility notes.
 
+Detailed guidance lives in `docs/en/pull-request-guide.md` and `docs/tr/pr-kilavuzu.md`.
+
 ## Project Standards
 
 - Match existing repository conventions and keep changes scoped.
 - Do not commit secrets, generated tarballs, or local state.
 - Prefer deterministic behavior and explicit verification over implicit assumptions.
 - Update `README.md` or `docs/ARCHITECTURE.md` when user-facing or architectural behavior changes.
+- Keep both `README.md` and `README.tr.md` aligned when user-facing behavior changes.
 
 ## Pull Requests
 
@@ -48,3 +51,9 @@ The repository includes a GitHub release workflow for npm publishing.
 - Tag releases with `v*` (for example `v0.2.0`), or run the release workflow manually.
 - Configure the `NPM_TOKEN` GitHub Actions secret before using the workflow.
 - Ensure `bun run ci:verify` passes before cutting a release.
+
+## Further Reading
+
+- `docs/README.md`
+- `docs/en/usage-guide.md`
+- `docs/en/model-recommendations.md`
