@@ -34,3 +34,9 @@ bun run ci:verify
 - history okunabilir ve odakli kalsin
 - tek buyuk PR yerine kucuk ve bagimsiz PR'lari tercih edin
 - acil durum disinda branch protection'i baypas etmeyin
+
+## Ilgili Dokumanlar
+
+- [Yonetsim ve Branch Politikasi](./yonetisim-rehberi.md)
+- [Kullanim Kilavuzu](./kullanim-kilavuzu.md)
+- [Katki Rehberi](../../CONTRIBUTING.md)

@@ -36,3 +36,9 @@ Use `.github/PULL_REQUEST_TEMPLATE.md` and include:
 - keep history readable and scoped
 - prefer small PRs over multi-topic batches
 - do not bypass branch protection except for emergencies
+
+## Related Docs
+
+- [Governance and Branch Policy](./governance-guide.md)
+- [Usage Guide](./usage-guide.md)
+- [Contributing](../../CONTRIBUTING.md)

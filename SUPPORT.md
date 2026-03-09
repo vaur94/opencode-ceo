@@ -9,9 +9,17 @@ Use the following paths so requests land in the right place:
 
 When asking for help, include the commands you ran, the environment, and any relevant logs.
 
+For good bug reports, include:
+
+- exact reproduction steps
+- expected versus actual behavior
+- Bun version and operating system
+- relevant logs or screenshots
+
 ## Useful References
 
-- `README.md`
-- `README.tr.md`
-- `docs/README.md`
-- `SECURITY.md`
+- [English README](./README.md)
+- [Turkce README](./README.tr.md)
+- [Documentation Hub](./docs/README.md)
+- [Security](./SECURITY.md)
+- [Usage Guide](./docs/en/usage-guide.md)

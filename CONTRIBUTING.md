@@ -2,6 +2,12 @@
 
 Thanks for contributing.
 
+## Repository Reality
+
+- CI and protected-branch automation are active.
+- npm release automation is configured but the first public release has not happened yet.
+- Documentation is maintained in both English and Turkish for user-facing topics.
+
 ## Local Setup
 
 1. Install Bun.
@@ -54,6 +60,7 @@ The repository includes a GitHub release workflow for npm publishing.
 
 ## Further Reading
 
-- `docs/README.md`
-- `docs/en/usage-guide.md`
-- `docs/en/model-recommendations.md`
+- [Documentation Hub](./docs/README.md)
+- [Usage Guide](./docs/en/usage-guide.md)
+- [Pull Request Guide](./docs/en/pull-request-guide.md)
+- [Release Guide](./docs/en/release-guide.md)

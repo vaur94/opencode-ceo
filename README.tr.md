@@ -4,43 +4,86 @@
 [![Release](https://github.com/vaur94/opencode-ceo/actions/workflows/release.yml/badge.svg)](https://github.com/vaur94/opencode-ceo/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-OpenCode'u daha kontrollu, izlenebilir ve teslimat odakli bir yazi lim sirketi isletim sistemine donusturur.
+OpenCode icin daha kontrollu, izlenebilir ve teslimat odakli bir yazilim operasyon sistemi kurar.
 
-`opencode-ceo`, isleri asamali bir teslimat hattindan geciren bir OpenCode eklentisidir. CEO ajanı isi parcala, uzman ajanlara delege eder, kapilari uygular, artifact ve state bilgisini saklar, gerekirse GitHub branch ve PR akisina kadar teslimati yonetir.
+## 🚀 Bu Proje Ne Yapiyor?
 
-## Dil
+`opencode-ceo`, yazilim gorevlerini belirli asamalardan geciren bir OpenCode eklentisidir. CEO ajanı isi sahiplenir, uzman ajanlara delege eder, kapilari uygular, artifact ve state bilgisini saklar, uygun oldugunda GitHub branch ve PR teslimatini da hazirlar.
 
-- English: `README.md`
-- Turkce: `README.tr.md`
+## 🌍 Dil Secenekleri
 
-## Neden opencode-ceo?
+- [English README](./README.md)
+- [Turkce README](./README.tr.md)
 
-- Duzensiz agent ciktilari yerine belirli bir pipeline kullanir.
-- SQLite tabanli state ve artifact saklama ile uzun suren oturumlari destekler.
-- GitHub branch ve PR akisi icin hazir araclar sunar.
-- Tam otomasyon ile kontrollu onay noktalarini ayni sistemde toplar.
+## ⚡ Guncel Durum
 
-## Dokuman Haritasi
+- `main` branch CI korumasi aktif
+- release workflow hazir: `.github/workflows/release.yml`
+- Dependabot aktif: `.github/dependabot.yml`
+- npm paketi henuz yayinlanmadi
+- GitHub release henuz olusturulmadi
 
-| Konu | English | Turkce |
-|------|---------|--------|
-| Dokuman merkezi | `docs/README.md` | `docs/README.md` |
-| Kullanim kilavuzu | `docs/en/usage-guide.md` | `docs/tr/kullanim-kilavuzu.md` |
-| PR rehberi | `docs/en/pull-request-guide.md` | `docs/tr/pr-kilavuzu.md` |
-| Model onerileri | `docs/en/model-recommendations.md` | `docs/tr/model-onerileri.md` |
-| Mimari | `docs/ARCHITECTURE.md` | `docs/ARCHITECTURE.md` |
-| Katki rehberi | `CONTRIBUTING.md` | `CONTRIBUTING.md` |
-| Guvenlik | `SECURITY.md` | `SECURITY.md` |
-| Destek | `SUPPORT.md` | `SUPPORT.md` |
-| Degisiklik gunlugu | `CHANGELOG.md` | `CHANGELOG.md` |
+Release durumunu ve yayin adimlarini gormek icin [Surum ve Yayin Rehberi](./docs/tr/surum-yayin-rehberi.md) ile baslayin.
 
-## Kurulum
+## ✨ Neden opencode-ceo?
+
+- tek seferlik agent cevabi yerine kontrollu bir pipeline kullanir
+- uzun sureli islerde SQLite tabanli state ve artifact takibi saglar
+- GitHub branch ve PR teslimati icin hazir araclar sunar
+- tam otomasyon ile manuel onay noktalarini ayni sistemde toplar
+
+## 🧭 Dokuman Merkezi
+
+Tum dokuman yapisi icin:
+
+- [Dokuman Merkezi](./docs/README.md)
+
+### Icindekiler
+
+- [Bu Proje Ne Yapiyor?](#-bu-proje-ne-yapiyor)
+- [Guncel Durum](#-guncel-durum)
+- [Dokuman Merkezi](#-dokuman-merkezi)
+- [Kurulum Durumu](#-kurulum-durumu)
+- [Konfigurasyon Ornegi](#️-konfigurasyon-ornegi)
+- [Pipeline Ozeti](#️-pipeline-ozeti)
+- [GitHub Teslimat Akisi](#-github-teslimat-akisi)
+- [Yerel Dogrulama](#-yerel-dogrulama)
+- [Repo Kontrolleri](#️-repo-kontrolleri)
+
+Temel rehberler:
+
+- [Kullanim Kilavuzu](./docs/tr/kullanim-kilavuzu.md)
+- [PR Kilavuzu](./docs/tr/pr-kilavuzu.md)
+- [Model Onerileri](./docs/tr/model-onerileri.md)
+- [Surum ve Yayin Rehberi](./docs/tr/surum-yayin-rehberi.md)
+- [Yonetsim ve Branch Politikasi](./docs/tr/yonetisim-rehberi.md)
+- [Mimari](./docs/ARCHITECTURE.md)
+
+Repo politikalari:
+
+- [Katki Rehberi](./CONTRIBUTING.md)
+- [Guvenlik](./SECURITY.md)
+- [Destek](./SUPPORT.md)
+- [Davranis Kurallari](./CODE_OF_CONDUCT.md)
+- [Degisiklik Gunlugu](./CHANGELOG.md)
+- [Lisans](./LICENSE)
+
+## 📦 Kurulum Durumu
+
+Paket adi `opencode-ceo`, ancak ilk genel npm yayini henuz yapilmadi.
+
+Bugun icin gercek kullanim secenekleri:
+
+- bu repo uzerinden yerel gelistirme
+- ilk yayin sonrasi `npm install`
+
+Ilk yayin sonrasi planlanan komut:
 
 ```bash
 npm install opencode-ceo
 ```
 
-`opencode.json` icine eklenti ayarini ekleyin:
+## ⚙️ Konfigurasyon Ornegi
 
 ```json
 {
@@ -60,9 +103,7 @@ npm install opencode-ceo
 }
 ```
 
-## Hizli Baslangic
-
-En kucuk kurulum icin tam otonomi kullanabilirsiniz:
+En kucuk tam otonomi kurulumu:
 
 ```json
 {
@@ -77,45 +118,75 @@ En kucuk kurulum icin tam otonomi kullanabilirsiniz:
 }
 ```
 
-Bu kurulumdan sonra `ceo` ajanı isi sahiplenir, gizli uzman ajanlara delege eder ve pipeline son durumuna kadar ilerler.
+## 🏗️ Pipeline Ozeti
 
-## GitHub Teslimat Akisi
+```text
+[intake] -> [decompose] -> [implement] -> [review] -> [test] -> [deliver] -> [completed]
+                 \-> [blocked]                                 \-> [failed]
+```
 
-- `ceo_branch_prepare`, `ceo/<pipeline-id>/<slug>` adlandirmasi ile branch olusturur.
-- `ceo_pr_prepare`, aktif branch'i `origin`e push eder ve `gh pr create` ile PR acar.
-- `ceo_repo_fingerprint`, repo durumu, remote bilgisi ve git durumunu raporlar.
+Asama ozeti:
 
-Yerel PR otomasyonu icin once GitHub CLI girisi yapin:
+- `intake`: gorev alinır ve proje stack'i tespit edilir
+- `decompose`: uygulanabilir plan olusturulur
+- `implement`: degisiklik uretimi yapilir
+- `review`: kalite ve risk kontrolu yapilir
+- `test`: davranis ve regresyon kontrolleri calistirilir
+- `deliver`: branch ve PR ciktilari hazirlanir
+
+Daha fazla ayrinti icin [Mimari](./docs/ARCHITECTURE.md) dosyasina bakin.
+
+## 🧠 Model Tercihleri
+
+`modelPreferences` ayarlarini asama bazinda optimize edebilirsiniz:
+
+- [Model Onerileri](./docs/tr/model-onerileri.md)
+
+## 🔀 GitHub Teslimat Akisi
+
+- `ceo_branch_prepare`, `ceo/<pipeline-id>/<slug>` branch'i olusturur
+- `ceo_pr_prepare`, aktif branch'i `origin`e push eder ve `gh pr create` ile PR acar
+- `ceo_repo_fingerprint`, remote, git durumu ve repo hazirlik bilgisini raporlar
+
+Yerel PR otomasyonu icin once:
 
 ```bash
 gh auth login
 ```
 
-## Konfigurasyon
-
-| Secenek | Tip | Varsayilan | Aciklama |
-|---------|-----|------------|----------|
-| `autonomyLevel` | `full` \| `gated` \| `manual` | `full` | Pipeline gecislerinde insan mudahalesi seviyesini belirler. |
-| `gates` | `Record<string, "auto" \| "manual">` | `{}` | `approve-plan` ve `approve-delivery` gibi kapilari tanimlar. |
-| `disabledAgents` | `string[]` | `[]` | Belirli uzman ajanlari devre disi birakir. |
-| `modelPreferences` | `Object` | `{}` | Implement, review ve test gibi asamalarda tercih edilen modelleri belirler. |
-
-Pratik model tavsiyeleri icin `docs/tr/model-onerileri.md` dosyasina bakin.
-
-## Gelistirme
+## 🧪 Yerel Dogrulama
 
 ```bash
 bun install
 bun run ci:verify
 ```
 
-## Sonraki Dokumanlar
+Tekil komutlar:
 
-- Kullanim detaylari: `docs/tr/kullanim-kilavuzu.md`
-- PR akisi: `docs/tr/pr-kilavuzu.md`
-- Model tavsiyeleri: `docs/tr/model-onerileri.md`
-- Mimari detaylar: `docs/ARCHITECTURE.md`
+- `bun run build`
+- `bun run typecheck`
+- `bun test`
+- `bun run pack:check`
 
-## Lisans
+## 🛡️ Repo Kontrolleri
+
+- korumali `main` branch
+- zorunlu `quality`, `tests`, `package` kontrolleri
+- lineer history zorunlulugu
+- `main` icin force-push kapali
+- merge oncesi konusma cozum zorunlulugu
+- npm ve GitHub Actions icin Dependabot aktif
+- CI, geriye donuk uyumluluk icin hem `main` hem `master` olaylarini dinler; aktif politika hedefi `main` branch'idir
+
+Ayrintilar: [Yonetsim ve Branch Politikasi](./docs/tr/yonetisim-rehberi.md)
+
+## 📚 Sonraki Adimlar
+
+- kullanim: [Kullanim Kilavuzu](./docs/tr/kullanim-kilavuzu.md)
+- katkı ve PR akisi: [PR Kilavuzu](./docs/tr/pr-kilavuzu.md)
+- yayin akisi: [Surum ve Yayin Rehberi](./docs/tr/surum-yayin-rehberi.md)
+- repo kurallari: [Yonetsim ve Branch Politikasi](./docs/tr/yonetisim-rehberi.md)
+
+## 📄 Lisans
 
 MIT

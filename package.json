@@ -11,15 +11,27 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vaur94/opencode-ceo"
+    "url": "git+https://github.com/vaur94/opencode-ceo.git"
+  },
+  "homepage": "https://github.com/vaur94/opencode-ceo#readme",
+  "bugs": {
+    "url": "https://github.com/vaur94/opencode-ceo/issues"
   },
   "author": "opencode-ceo contributors",
   "license": "MIT",
+  "engines": {
+    "bun": ">=1.3.10"
+  },
   "module": "./dist/index.js",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist/",
     "README.md",
+    "README.tr.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "exports": {
