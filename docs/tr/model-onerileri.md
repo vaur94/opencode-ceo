@@ -2,6 +2,15 @@
 
 Bu rehber, `modelPreferences` ayarlarini pipeline asamalarina gore daha mantikli secmenize yardim eder.
 
+## Onerilen Baslangic Noktasi
+
+Kolay bir varsayilan istiyorsaniz:
+
+- `decompose` icin ulasabildiginiz en guclu akil yurutme modelini kullanin
+- `implement` icin kodlama odakli bir model secin
+- `review` gucunu `implement` seviyesinin altina dusurmeyin
+- tekrarli `test` dongulerinde daha hizli ve ucuz bir model kullanin
+
 ## Genel Kural
 
 - planlama ve inceleme icin yuksek akil yurutme modelleri kullanin
@@ -31,3 +40,8 @@ Bu rehber, `modelPreferences` ayarlarini pipeline asamalarina gore daha mantikli
 ```
 
 Bu isimleri kendi OpenCode ortaminda kullanabildiginiz model kimlikleri ile degistirin.
+
+## Ilgili Dokumanlar
+
+- [Kullanim Kilavuzu](./kullanim-kilavuzu.md)
+- [Surum ve Yayin Rehberi](./surum-yayin-rehberi.md)
