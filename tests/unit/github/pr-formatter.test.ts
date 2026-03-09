@@ -28,6 +28,18 @@ Ship the formatter
 - **Pipeline ID**: pipeline-123
 - **Started**: 1710000000000
 
+## ✅ Tasks Completed
+- None
+
+## 🗂 Files Changed
+- None
+
+## 🧪 Test Results
+- None
+
+## 🔗 PR Link
+- None
+
 ## 📦 Artifacts
 - None
 
@@ -94,9 +106,23 @@ Prepare a clean pull request body
 - **Pipeline ID**: pipeline-456
 - **Started**: 1710000010000
 
+## ✅ Tasks Completed
+- implement
+- test
+
+## 🗂 Files Changed
+- artifacts/diff.patch
+- artifacts/test.txt
+
+## 🧪 Test Results
+- test: artifacts/test.txt
+
+## 🔗 PR Link
+- None
+
 ## 📦 Artifacts
-- **code-diff** (implement)
-- **test-result** (test)
+- **code-diff** (implement) - artifacts/diff.patch
+- **test-result** (test) - artifacts/test.txt
 
 ## 🧠 Decisions Made
 - **implement**: Use a pure formatter function

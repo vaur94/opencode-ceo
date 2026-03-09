@@ -7,6 +7,7 @@ import { join } from "node:path"
 
 import { TOOL_PREFIX } from "../../../src/core/constants.ts"
 import { initializeDatabase } from "../../../src/state/database.js"
+import { createMockPluginInput, createMockToolExecutionContext } from "../../helpers/test-utils.ts"
 
 const getDatabaseMock = mock((): Database => {
 	throw new Error("Database mock has not been initialized")
@@ -59,7 +60,7 @@ describe("ceo_artifact_tools", () => {
 	})
 
 	afterEach(async () => {
-		fixture?.db.close(false)
+		fixture?.db.close()
 		if (fixture?.directory) {
 			await rm(fixture.directory, { recursive: true, force: true })
 		}
@@ -91,7 +92,7 @@ describe("ceo_artifact_tools", () => {
 		expect(existsSync(expectedPath)).toBeTrue()
 
 		const rows = db
-			.prepare<ArtifactRow, []>(
+			.query<ArtifactRow, [string]>(
 				"SELECT pipeline_id, stage, type, path FROM artifacts WHERE pipeline_id = ?1",
 			)
 			.all("pipe-1")
@@ -143,36 +144,34 @@ describe("ceo_artifact_tools", () => {
 			{ directory },
 		)
 
-		expect(result).toBe("Artifact not found")
+		expect(result).toBe("null")
 	})
 
-		test("tool factory wires artifact tools to real implementations", async () => {
+	test("tool factory wires artifact tools to real implementations", async () => {
 		const { directory } = getFixture()
 		const definitions = createToolDefinitions({
 			directory,
 			worktree: directory,
+			client: createMockPluginInput().client,
 		})
 
-		await definitions[`${TOOL_PREFIX}artifact_write`].execute(
+		await definitions[`${TOOL_PREFIX}artifact_write`]!.execute(
 			{
 				pipeline_id: "pipe-4",
 				stage: "test",
 				type: "test-result",
 				data: { ok: true },
 			},
-			{
-				directory,
-				sessionID: "session-4",
-			},
+			createMockToolExecutionContext({ directory, worktree: directory, sessionID: "session-4" }),
 		)
 
-		const result = await definitions[`${TOOL_PREFIX}artifact_read`].execute(
+		const result = await definitions[`${TOOL_PREFIX}artifact_read`]!.execute(
 			{
 				pipeline_id: "pipe-4",
 				stage: "test",
 				type: "test-result",
 			},
-			{ directory, sessionID: "session-4" },
+			createMockToolExecutionContext({ directory, worktree: directory, sessionID: "session-4" }),
 		)
 
 		expect(result).toBe(JSON.stringify({ ok: true }, null, 2))

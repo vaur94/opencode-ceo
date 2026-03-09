@@ -21,15 +21,15 @@ export async function executeArtifactWrite(
 }
 
 export async function executeArtifactRead(
-	params: { pipeline_id: string; stage: string; type: string },
-	context: { directory: string },
+  params: { pipeline_id: string; stage: string; type: string },
+  context: { directory: string },
 ): Promise<string> {
-	try {
-		const db = getDatabase(context.directory)
-		const data = readArtifact(db, params.pipeline_id, params.stage, params.type as ArtifactType)
-		if (!data) return "Artifact not found"
-		return JSON.stringify(data, null, 2)
-	} catch (e) {
-		return `Error reading artifact: ${String(e)}`
-	}
+  try {
+    const db = getDatabase(context.directory)
+    const data = readArtifact(db, params.pipeline_id, params.stage, params.type as ArtifactType)
+    if (!data) return "null"
+    return JSON.stringify(data, null, 2)
+  } catch (e) {
+    return `Error reading artifact: ${String(e)}`
+  }
 }

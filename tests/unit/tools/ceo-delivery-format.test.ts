@@ -3,7 +3,7 @@ import type { Database } from "bun:sqlite"
 
 import { TOOL_PREFIX } from "../../../src/core/constants.ts"
 import { createPipeline } from "../../../src/state/pipeline-store.ts"
-import { createTestDatabase } from "../../helpers/test-utils.ts"
+import { createMockPluginInput, createMockToolExecutionContext, createTestDatabase } from "../../helpers/test-utils.ts"
 
 const getDatabaseMock = mock(() => createTestDatabase())
 
@@ -35,8 +35,8 @@ describe("ceo_delivery_format", () => {
 	})
 
 	afterEach(() => {
-		const db = getDatabaseMock.mock.results.at(-1)?.value
-		db?.close(false)
+		const db = getDatabaseMock.mock.results.at(-1)?.value as Database | undefined
+		db?.close()
 		getDatabaseMock.mockClear()
 	})
 
@@ -62,7 +62,7 @@ describe("ceo_delivery_format", () => {
 		expect(result).toBe(
 			`# Delivery Summary\nPipeline: ${pipeline.id}\nGoal: Ship task 23\nState: intake\nCreated: ${new Date(
 				1700000000000,
-			).toISOString()}\n\n## Artifacts\n- decompose/plan: /tmp/artifacts/decompose/plan.json\n- review/review: /tmp/artifacts/review/review.json`,
+			).toISOString()}\n\n## Tasks Completed\n- decompose\n- review\n\n## Files Changed\n- /tmp/artifacts/decompose/plan.json\n- /tmp/artifacts/review/review.json\n\n## PR Link\nNo PR artifact\n\n## Decisions\nNo decisions\n\n## Artifacts\n- decompose/plan: /tmp/artifacts/decompose/plan.json\n- review/review: /tmp/artifacts/review/review.json`,
 		)
 	})
 
@@ -81,7 +81,7 @@ describe("ceo_delivery_format", () => {
 		expect(result).toBe(
 			`# Delivery Summary\nPipeline: ${pipeline.id}\nGoal: Ship task 23\nState: intake\nCreated: ${new Date(
 				pipeline.created_at,
-			).toISOString()}\n\n## Artifacts\nNo artifacts`,
+			).toISOString()}\n\n## Tasks Completed\nNo completed tasks\n\n## Files Changed\nNo files changed\n\n## PR Link\nNo PR artifact\n\n## Decisions\nNo decisions\n\n## Artifacts\nNo artifacts`,
 		)
 	})
 
@@ -120,13 +120,14 @@ describe("ceo_delivery_format", () => {
 		const definitions = createToolDefinitions({
 			directory: "/repo",
 			worktree: "/repo",
+			client: createMockPluginInput().client,
 		})
 
-		const result = await definitions[`${TOOL_PREFIX}delivery_format`].execute(
+		const result = await definitions[`${TOOL_PREFIX}delivery_format`]!.execute(
 			{
 				pipeline_id: pipeline.id,
 			},
-			{ directory: "/repo", sessionID: "session-3" },
+			createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "session-3" }),
 		)
 
 		expect(result).toContain("# Delivery Summary")

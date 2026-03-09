@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test"
+import type { Database } from "bun:sqlite"
 
 import { TOOL_PREFIX } from "../../../src/core/constants.ts"
 import { createPipeline } from "../../../src/state/pipeline-store.ts"
-import { createTestDatabase } from "../../helpers/test-utils.ts"
+import {
+	createMockPluginInput,
+	createMockToolExecutionContext,
+	createTestDatabase,
+} from "../../helpers/test-utils.ts"
 
 const getDatabaseMock = mock(() => createTestDatabase())
 
@@ -26,8 +31,8 @@ describe("ceo_decision_log", () => {
 	})
 
 	afterEach(() => {
-		const db = getDatabaseMock.mock.results.at(-1)?.value
-		db?.close(false)
+		const db = getDatabaseMock.mock.results.at(-1)?.value as Database | undefined
+		db?.close()
 		getDatabaseMock.mockClear()
 	})
 
@@ -111,17 +116,18 @@ describe("ceo_decision_log", () => {
 		const definitions = createToolDefinitions({
 			directory: "/repo",
 			worktree: "/repo",
+			client: createMockPluginInput().client,
 		})
 
 		getDatabaseMock.mockImplementation(() => db)
 
-		const result = await definitions[`${TOOL_PREFIX}decision_log`].execute(
+		const result = await definitions[`${TOOL_PREFIX}decision_log`]!.execute(
 			{
 				pipeline_id: pipeline.id,
 				stage: "test",
 				decision: "hold",
 			},
-			{ directory: "/repo", sessionID: "session-4" },
+			createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "session-4" }),
 		)
 
 		expect(result).toBe("Decision logged: hold")
