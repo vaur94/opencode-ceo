@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
 import { TOOL_PREFIX } from "../../../src/core/constants.ts";
+import { createMockPluginInput, createMockToolExecutionContext, createTestDatabase } from "../../helpers/test-utils.ts";
 
 type CreateBranchResult =
 	| { success: true; branchName: string }
@@ -29,6 +30,12 @@ mock.module("../../../src/github/pr-manager.js", () => ({
 	createPR: createPRMock,
 }));
 
+const getDatabaseMock = mock(() => createTestDatabase());
+
+mock.module("../../../src/state/database.js", () => ({
+	getDatabase: getDatabaseMock,
+}));
+
 const { executeBranchPrepare, executePrPrepare } = await import(
 	"../../../src/tools/ceo-git-tools.ts"
 );
@@ -37,6 +44,10 @@ const { createToolDefinitions } = await import(
 );
 
 describe("ceo_git_tools", () => {
+	test("setup database mock", () => {
+		expect(getDatabaseMock).toBeDefined();
+	});
+
 	test("branch prepare returns a created branch message from the mocked helper", async () => {
 		const result = await executeBranchPrepare(
 			{
@@ -107,13 +118,11 @@ describe("ceo_git_tools", () => {
 		const definitions = createToolDefinitions({
 			directory: "/repo",
 			worktree: "/repo",
+			client: createMockPluginInput().client,
 		});
 		const branchTool = definitions[`${TOOL_PREFIX}branch_prepare`];
 		const prTool = definitions[`${TOOL_PREFIX}pr_prepare`];
-		const toolContext = {
-			directory: "/repo",
-			sessionID: "session-24",
-		} as never;
+		const toolContext = createMockToolExecutionContext({ directory: "/repo", worktree: "/repo", sessionID: "session-24" });
 
 		if (!branchTool || !prTool) {
 			throw new Error("Expected both CEO git tools to be registered");

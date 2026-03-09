@@ -1,5 +1,5 @@
 import { $ } from "bun"
-import { hasRemote, isGitHubRemote } from "./git-utils.js"
+import { getCurrentBranch, hasRemote, isGitHubRemote, pushCurrentBranch } from "./git-utils.js"
 
 export async function createPR(
   directory: string,
@@ -20,8 +20,16 @@ export async function createPR(
     return { success: false, error: "GitHub CLI not authenticated. Run: gh auth login" }
   }
 
+  const branchName = await getCurrentBranch(directory)
+
   try {
-    const result = await $`gh pr create --title ${title} --body ${body}`.cwd(directory).text()
+    await pushCurrentBranch(directory, branchName)
+  } catch (e) {
+    return { success: false, error: `Failed to publish branch '${branchName || "unknown"}': ${String(e)}` }
+  }
+
+  try {
+    const result = await $`gh pr create --head ${branchName} --title ${title} --body ${body}`.cwd(directory).text()
     const url = result
       .trim()
       .split("\n")

@@ -14,6 +14,16 @@ export async function getCurrentBranch(directory: string): Promise<string> {
   return result.trim()
 }
 
+export async function pushCurrentBranch(directory: string, branchName?: string): Promise<void> {
+  const currentBranch = (branchName ?? (await getCurrentBranch(directory))).trim()
+
+  if (currentBranch.length === 0) {
+    throw new Error("No current branch checked out")
+  }
+
+  await $`git -C ${directory} push -u origin ${currentBranch}`.quiet()
+}
+
 export async function hasRemote(directory: string): Promise<boolean> {
   try {
     const result = await $`git -C ${directory} remote`.text()
