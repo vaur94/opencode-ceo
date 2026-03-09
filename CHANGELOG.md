@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog:
 https://keepachangelog.com/en/1.1.0/
 
+## [Unreleased]
+
+### Docs
+
+- Strengthened the bilingual documentation system with direct links, release guidance, governance guidance, and clearer usage flows.
+- Clarified that npm publication and the first GitHub release have not happened yet.
+
 ## [0.1.0] - 2026-03-09
 
 ### Added
