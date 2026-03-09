@@ -1,12 +1,28 @@
 # Usage Guide
 
-## Installation
+## 1. Before You Start
+
+Today, `opencode-ceo` is repository-ready but not publicly released on npm yet.
+
+That means there are two different usage modes:
+
+- repository development and evaluation from this codebase
+- future npm installation after the first public release
+
+## 2. Local Setup
 
 ```bash
-npm install opencode-ceo
+bun install
+bun run ci:verify
 ```
 
-## Minimal Configuration
+If you plan to use GitHub delivery locally:
+
+```bash
+gh auth login
+```
+
+## 3. Minimal Configuration
 
 ```json
 {
@@ -21,7 +37,9 @@ npm install opencode-ceo
 }
 ```
 
-## Controlled Configuration
+Use this when you want the CEO agent to move through the full pipeline automatically.
+
+## 4. Controlled Configuration
 
 ```json
 {
@@ -47,26 +65,30 @@ npm install opencode-ceo
 }
 ```
 
-## Runtime Flow
+Use this when you want explicit human checkpoints before the plan, review, or delivery is accepted.
 
-1. The `ceo` agent receives the task.
-2. The pipeline enters `intake` and moves through decomposition, implementation, review, test, and delivery.
-3. Artifacts, gates, decisions, and stage history are stored in SQLite under `.ceo/` at runtime.
-4. GitHub delivery tools can prepare a branch and open a PR when the repository is configured with a GitHub remote.
+## 5. Runtime Flow
 
-## Recommended Local Workflow
+1. `ceo` receives the task.
+2. The pipeline enters `intake` and advances through decomposition, implementation, review, test, and delivery.
+3. Gates, artifacts, stage history, and decisions are stored in SQLite under `.ceo/` at runtime.
+4. If the repository is GitHub-ready, delivery helpers can prepare a branch and open a pull request.
+
+## 6. Day-To-Day Commands
 
 ```bash
-bun install
+bun run build
+bun run typecheck
+bun test
+bun run pack:check
 bun run ci:verify
-gh auth login
 ```
 
-## Troubleshooting
+## 7. Troubleshooting
 
 ### `bun install --frozen-lockfile` fails in CI
 
-Run `bun install` locally and commit the updated `bun.lock`.
+Run `bun install` locally and commit the updated `bun.lock` file.
 
 ### PR creation fails
 
@@ -78,10 +100,15 @@ Check all of the following:
 
 ### Delivery is blocked by gates
 
-Use a less restrictive `autonomyLevel`, or configure the relevant `gates` entry to `auto`.
+Use a less restrictive `autonomyLevel`, or change the relevant `gates` entry to `auto`.
 
-## Related Docs
+### The package is not available from npm
 
-- `pull-request-guide.md`
-- `model-recommendations.md`
-- `../ARCHITECTURE.md`
+That is expected until the first public release is published. Use the repository directly until then.
+
+## 8. Related Docs
+
+- [Pull Request Guide](./pull-request-guide.md)
+- [Model Recommendations](./model-recommendations.md)
+- [Release Guide](./release-guide.md)
+- [Architecture](../ARCHITECTURE.md)

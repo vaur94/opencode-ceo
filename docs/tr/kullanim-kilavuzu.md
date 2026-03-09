@@ -1,12 +1,28 @@
 # Kullanim Kilavuzu
 
-## Kurulum
+## 1. Baslamadan Once
+
+Bugun icin `opencode-ceo` repo duzeyinde hazir, ancak npm uzerinden genel kullanim icin henuz yayinlanmis degil.
+
+Bu nedenle iki farkli kullanim modu var:
+
+- bu repo uzerinden yerel gelistirme ve deneme
+- ilk genel yayin sonrasi `npm install`
+
+## 2. Yerel Kurulum
 
 ```bash
-npm install opencode-ceo
+bun install
+bun run ci:verify
 ```
 
-## En Kucuk Konfigurasyon
+GitHub teslimat akisini yerelde kullanacaksaniz:
+
+```bash
+gh auth login
+```
+
+## 3. En Kucuk Konfigurasyon
 
 ```json
 {
@@ -21,7 +37,9 @@ npm install opencode-ceo
 }
 ```
 
-## Kontrollu Konfigurasyon
+Bunu, CEO ajaninin tum pipeline'i otomatik yuruttugu senaryolar icin kullanin.
+
+## 4. Kontrollu Konfigurasyon
 
 ```json
 {
@@ -47,22 +65,26 @@ npm install opencode-ceo
 }
 ```
 
-## Calisma Akisi
+Bunu, plan, review veya delivery oncesinde insan onayi istediginiz senaryolarda kullanin.
 
-1. `ceo` ajani gorevi alir.
-2. Pipeline intake, decompose, implement, review, test ve deliver asamalarindan gecer.
-3. Artifact, gate, decision ve stage gecmisi `.ceo/` altindaki SQLite state icinde tutulur.
-4. GitHub delivery araclari, repo dogru sekilde ayarlandiysa branch ve PR akisina kadar teslimat yapar.
+## 5. Calisma Akisi
 
-## Onerilen Yerel Akis
+1. `ceo` gorevi alir.
+2. Pipeline `intake`, `decompose`, `implement`, `review`, `test` ve `deliver` asamalarindan gecer.
+3. Gate, artifact, stage gecmisi ve kararlar `.ceo/` altindaki SQLite state icinde tutulur.
+4. Repo GitHub icin hazirsa branch ve PR teslimati da otomatiklestirilebilir.
+
+## 6. Guncelik Komutlar
 
 ```bash
-bun install
+bun run build
+bun run typecheck
+bun test
+bun run pack:check
 bun run ci:verify
-gh auth login
 ```
 
-## Sorun Giderme
+## 7. Sorun Giderme
 
 ### CI'da `bun install --frozen-lockfile` hatasi
 
@@ -79,3 +101,14 @@ Sunlari kontrol edin:
 ### Gate nedeniyle teslimat bloklaniyor
 
 Daha az kisitlayici bir `autonomyLevel` secin veya ilgili `gates` girdisini `auto` yapin.
+
+### Paket npm'de gorunmuyor
+
+Bu durum ilk genel yayin yapilana kadar normaldir. O zamana kadar repo uzerinden calisin.
+
+## 8. Ilgili Dokumanlar
+
+- [PR Kilavuzu](./pr-kilavuzu.md)
+- [Model Onerileri](./model-onerileri.md)
+- [Surum ve Yayin Rehberi](./surum-yayin-rehberi.md)
+- [Mimari](../ARCHITECTURE.md)
