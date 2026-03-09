@@ -54,8 +54,10 @@ describe("git-utils", () => {
   })
 
   test("getCurrentBranch returns a non-empty branch name", async () => {
-    expect(await getCurrentBranch(projectDirectory)).not.toHaveLength(0)
-  })
+		const directory = await createGitRepo("opencode-ceo-current-branch-")
+
+		expect(await getCurrentBranch(directory)).not.toHaveLength(0)
+	})
 
   test("hasRemote resolves to a boolean without throwing", async () => {
     const result = await hasRemote(projectDirectory)
