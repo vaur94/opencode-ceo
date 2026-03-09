@@ -30,11 +30,6 @@ export const DETECTION_CONFIGS: StackConfig[] = [
     specialistAgentId: null,
   },
   {
-    name: "java",
-    markerFiles: ["pom.xml", "build.gradle", "build.gradle.kts"],
-    specialistAgentId: null,
-  },
-  {
     name: "csharp",
     markerFiles: [".csproj", ".sln"],
     specialistAgentId: null,
@@ -57,6 +52,11 @@ export const DETECTION_CONFIGS: StackConfig[] = [
   {
     name: "kotlin",
     markerFiles: ["build.gradle.kts"],
+    specialistAgentId: null,
+  },
+  {
+    name: "java",
+    markerFiles: ["pom.xml", "build.gradle"],
     specialistAgentId: null,
   },
   {

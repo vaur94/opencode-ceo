@@ -94,6 +94,19 @@ describe("detectStack", () => {
     })
   })
 
+  test("detects a C# project from a .csproj file", () => {
+    const directory = createProject(["example.csproj"])
+
+    expect(detectStack(directory)).toEqual({
+      primaryLanguage: "csharp",
+      frameworks: [],
+      buildTool: "unknown",
+      testTool: "unknown",
+      packageManager: "unknown",
+      specialistAgent: null,
+    })
+  })
+
   test("detects a C# project from .csproj", () => {
     const directory = createProject([".csproj"])
 
@@ -150,7 +163,7 @@ describe("detectStack", () => {
     const directory = createProject(["build.gradle.kts"])
 
     expect(detectStack(directory)).toEqual({
-      primaryLanguage: "java",
+      primaryLanguage: "kotlin",
       frameworks: [],
       buildTool: "unknown",
       testTool: "unknown",

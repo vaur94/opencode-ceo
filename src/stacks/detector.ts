@@ -4,11 +4,28 @@ import { join } from "node:path"
 import { DETECTION_CONFIGS } from "./detection-configs.js"
 import type { StackFingerprint } from "./types.js"
 
+function hasMarker(directory: string, markerFile: string): boolean {
+  if (existsSync(join(directory, markerFile))) {
+    return true
+  }
+
+  if (!markerFile.startsWith(".")) {
+    return false
+  }
+
+  try {
+    const entries = new Bun.Glob(`*${markerFile}`).scanSync({ cwd: directory })
+    return entries[Symbol.iterator]().next().done === false
+  } catch {
+    return false
+  }
+}
+
 export function detectStack(directory: string): StackFingerprint {
   for (const config of DETECTION_CONFIGS) {
-    const hasMarker = config.markerFiles.some((markerFile) => existsSync(join(directory, markerFile)))
+    const foundMarker = config.markerFiles.some((markerFile) => hasMarker(directory, markerFile))
 
-    if (hasMarker) {
+    if (foundMarker) {
       return {
         primaryLanguage: config.name,
         frameworks: [],
