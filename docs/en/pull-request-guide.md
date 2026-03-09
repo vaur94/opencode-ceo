@@ -26,10 +26,10 @@ Use `.github/PULL_REQUEST_TEMPLATE.md` and include:
 
 ## Review Expectations
 
-- at least one approval is required on `main`
-- code owner review is required by branch protection
+- pull requests are required for `main`
 - required CI checks must pass before merge
-- stale approvals are dismissed when the PR changes
+- conversations must be resolved before merge
+- history must remain linear and force-pushes are blocked on `main`
 
 ## Merge Guidance
 
