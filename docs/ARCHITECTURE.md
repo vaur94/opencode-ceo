@@ -2,6 +2,15 @@
 
 This document describes the internal design and operational mechanics of the `opencode-ceo` plugin.
 
+## Table of Contents
+
+- [System Overview](#system-overview)
+- [FSM States](#fsm-states)
+- [Agent Contracts](#agent-contracts)
+- [Tool Catalog](#tool-catalog)
+- [State Schema](#state-schema)
+- [Compaction Survival](#compaction-survival)
+
 ## System Overview
 
 The `opencode-ceo` plugin implements a hierarchical agent model where a primary "CEO" agent manages the entire software delivery lifecycle by delegating specialized tasks to a fleet of subagents.
