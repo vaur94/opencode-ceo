@@ -15,11 +15,12 @@
   },
   "author": "opencode-ceo contributors",
   "license": "MIT",
-  "module": "src/index.ts",
+  "module": "./dist/index.js",
   "type": "module",
   "files": [
     "dist/",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
@@ -28,13 +29,18 @@
     }
   },
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun",
+    "build": "bun build src/index.ts --outdir dist --target bun && bun x tsc --declaration --emitDeclarationOnly --outDir dist",
+    "typecheck": "bun x tsc --noEmit",
+    "pack:check": "npm pack --dry-run",
+    "ci:verify": "bun run build && bun run typecheck && bun test && bun run pack:check",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:watch": "bun test --watch"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "latest"
+    "@opencode-ai/plugin": "latest",
+    "@opencode-ai/sdk": "latest",
+    "zod": "latest"
   },
   "devDependencies": {
     "@types/bun": "latest"

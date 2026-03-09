@@ -6,8 +6,9 @@
 
 ## Testing
 
-- [ ] Ran `bun test`
-- [ ] Ran `PATH="$HOME/.bun/bin:$PATH" bun run build`
+- [ ] Ran `bun run ci:verify`
+- [ ] Ran `bun run typecheck`
+- [ ] Ran `bun run pack:check`
 - [ ] Added/updated tests when behavior changed
 
 ## Checklist

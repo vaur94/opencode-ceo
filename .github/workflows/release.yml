@@ -1,20 +1,18 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches: [master, main]
-  pull_request:
-    branches: [master, main]
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    tags:
+      - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
-  verify:
+  publish:
+    if: github.repository == 'ugurkellecioglu/opencode-ceo'
     runs-on: ubuntu-latest
 
     steps:
@@ -28,5 +26,12 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
       - run: bun install --frozen-lockfile
       - run: bun run ci:verify
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
