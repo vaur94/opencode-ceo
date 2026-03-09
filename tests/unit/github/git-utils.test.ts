@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { $ } from "bun"
 
 import {
@@ -13,7 +13,7 @@ import {
 } from "../../../src/github/git-utils.ts"
 
 const testDirectories: string[] = []
-const projectDirectory = "/home/ugur/Projects/opencode-ceo"
+const projectDirectory = resolve(import.meta.dir, "../../..")
 
 function createTempDirectory(prefix: string): string {
   const directory = mkdtempSync(join(tmpdir(), prefix))

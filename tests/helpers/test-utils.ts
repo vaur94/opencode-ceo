@@ -1,8 +1,15 @@
 import { Database } from "bun:sqlite"
 import type { PluginInput } from "@opencode-ai/plugin"
 import type { ToolContext } from "@opencode-ai/plugin/tool"
+import { mkdtempSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 
 import { initializeDatabase } from "../../src/state/database.js"
+
+function createTempProjectDirectory(): string {
+  return mkdtempSync(join(tmpdir(), "opencode-ceo-test-"))
+}
 
 export function createTestDatabase(): Database {
   const db = new Database(":memory:")
@@ -11,9 +18,11 @@ export function createTestDatabase(): Database {
 }
 
 export function createMockPluginInput(): Pick<PluginInput, "directory" | "worktree" | "client"> {
+	const directory = createTempProjectDirectory()
+
 	return {
-		directory: "/tmp/test-project",
-		worktree: "/tmp/test-project",
+		directory,
+		worktree: directory,
 		client: {
 			session: {
 				create: async () => ({ data: { id: "mock-session-id" } }),
@@ -34,9 +43,11 @@ export function createMockPluginInput(): Pick<PluginInput, "directory" | "worktr
 }
 
 export function createMockToolContext() {
+	const directory = createTempProjectDirectory()
+
 	return {
 		sessionID: "mock-session-id",
-		directory: "/tmp/test-project",
+		directory: directory,
 		ask: async (_request: unknown) => {},
 	}
 }
@@ -44,12 +55,15 @@ export function createMockToolContext() {
 export function createMockToolExecutionContext(
 	overrides: Partial<ToolContext> = {},
 ): ToolContext {
+	const directory = overrides.directory ?? createTempProjectDirectory()
+	const worktree = overrides.worktree ?? directory
+
 	return {
 		sessionID: "mock-session-id",
 		messageID: "mock-message-id",
 		agent: "ceo",
-		directory: "/tmp/test-project",
-		worktree: "/tmp/test-project",
+		directory,
+		worktree,
 		abort: new AbortController().signal,
 		metadata() {},
 		ask: async () => {},
