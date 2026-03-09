@@ -39,6 +39,11 @@ function extractGoal(parts: Array<{ type?: string; text?: string }>): string {
 async function runPipeline(ctx: PipelineStageContext): Promise<void> {
   for (;;) {
     const pipeline = getPipelineBySession(ctx.db, ctx.sessionID)
+
+    if (pipeline) {
+      ctx.pipelineId = pipeline.id
+    }
+
     const state = pipeline?.state ?? "intake"
 
     if (state === "blocked" || state === "completed" || state === "failed") {
