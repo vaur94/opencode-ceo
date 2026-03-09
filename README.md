@@ -1,8 +1,38 @@
 # opencode-ceo
 
+[![CI](https://github.com/vaur94/opencode-ceo/actions/workflows/ci.yml/badge.svg)](https://github.com/vaur94/opencode-ceo/actions/workflows/ci.yml)
+[![Release](https://github.com/vaur94/opencode-ceo/actions/workflows/release.yml/badge.svg)](https://github.com/vaur94/opencode-ceo/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 Transform OpenCode into a deterministic software company OS.
 
-opencode-ceo is a specialized plugin for OpenCode that implements a structured software delivery pipeline. It uses a "CEO" agent to manage specialized subagents, ensuring that every task follows a rigorous process from architectural decomposition to final delivery. By enforcing state-driven transitions and gated approvals, it brings professional engineering standards to AI-driven development.
+`opencode-ceo` is an OpenCode plugin that runs software work through a controlled delivery pipeline. The CEO agent decomposes work, delegates to specialists, enforces gates, persists artifacts/state, and can deliver changes into GitHub with branch and pull request automation.
+
+## Language
+
+- English: `README.md`
+- Turkish: `README.tr.md`
+
+## Why opencode-ceo?
+
+- Deterministic pipeline ownership instead of ad-hoc agent output.
+- SQLite-backed state and artifact persistence for long-running work.
+- Delivery-aware GitHub tooling for branches, PRs, and repository fingerprinting.
+- Gated autonomy levels for teams that want review points before delivery.
+
+## Documentation Map
+
+| Topic | English | Turkish |
+|------|---------|---------|
+| Documentation hub | `docs/README.md` | `docs/README.md` |
+| Usage guide | `docs/en/usage-guide.md` | `docs/tr/kullanim-kilavuzu.md` |
+| PR guide | `docs/en/pull-request-guide.md` | `docs/tr/pr-kilavuzu.md` |
+| Model recommendations | `docs/en/model-recommendations.md` | `docs/tr/model-onerileri.md` |
+| Architecture | `docs/ARCHITECTURE.md` | `docs/ARCHITECTURE.md` |
+| Contributing | `CONTRIBUTING.md` | `CONTRIBUTING.md` |
+| Security | `SECURITY.md` | `SECURITY.md` |
+| Support | `SUPPORT.md` | `SUPPORT.md` |
+| Changelog | `CHANGELOG.md` | `CHANGELOG.md` |
 
 ## Installation
 
@@ -32,7 +62,7 @@ Add the plugin to your `opencode.json` configuration:
 
 ## Quick Start
 
-The simplest way to start is with the default configuration, which allows the CEO agent full autonomy:
+The smallest setup uses full autonomy:
 
 ```json
 {
@@ -47,17 +77,17 @@ The simplest way to start is with the default configuration, which allows the CE
 }
 ```
 
-Once configured, the `ceo` agent will handle incoming tasks by delegating to specialists and advancing them through the delivery pipeline.
+Once configured, the `ceo` agent owns the task, delegates to hidden specialists, and advances the pipeline until work is blocked, failed, or completed.
 
-## GitHub Integration
+## GitHub Delivery
 
-`opencode-ceo` includes a delivery path for GitHub repositories:
+`opencode-ceo` includes a GitHub-aware delivery path:
 
-- `ceo_branch_prepare` creates a pipeline branch using the `ceo/<pipeline-id>/<slug>` naming scheme.
-- `ceo_pr_prepare` publishes the current branch to `origin` and opens a pull request with `gh pr create`.
-- `ceo_repo_fingerprint` reports whether the repository is a Git repository, whether it has a GitHub remote, and the current git status.
+- `ceo_branch_prepare` creates `ceo/<pipeline-id>/<slug>` branches.
+- `ceo_pr_prepare` pushes the active branch to `origin` and opens a PR with `gh pr create`.
+- `ceo_repo_fingerprint` reports git state, remote information, and repository readiness.
 
-To use the PR automation path locally, authenticate GitHub CLI first:
+Authenticate GitHub CLI before using the PR automation path:
 
 ```bash
 gh auth login
@@ -68,13 +98,15 @@ gh auth login
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `autonomyLevel` | `full` \| `gated` \| `manual` | `full` | Controls how much human intervention is required for pipeline transitions. |
-| `gates` | `Record<string, "auto" \| "manual">` | `{}` | Configures specific approval gates (e.g., `approve-plan`, `approve-delivery`). |
-| `disabledAgents` | `string[]` | `[]` | List of subagent IDs to disable. |
-| `modelPreferences` | `Object` | `{}` | Preferred models for specific pipeline stages (implement, review, test). |
+| `gates` | `Record<string, "auto" \| "manual">` | `{}` | Configures specific approval gates such as `approve-plan` or `approve-delivery`. |
+| `disabledAgents` | `string[]` | `[]` | Disables selected specialist agents. |
+| `modelPreferences` | `Object` | `{}` | Overrides preferred models for stages such as implement, review, and test. |
+
+For practical model suggestions, see `docs/en/model-recommendations.md`.
 
 ## Agents
 
-The plugin provides a primary CEO agent and 7 specialized subagents.
+The plugin provides one primary CEO agent and seven hidden specialists.
 
 | Agent ID | Purpose | Hidden |
 |----------|---------|--------|
@@ -94,8 +126,6 @@ The plugin provides a primary CEO agent and 7 specialized subagents.
                  \-> [blocked]                                 \-> [failed]
 ```
 
-Tasks move through a finite state machine with the following primary stages:
-
 | Stage | Description | Primary Agent |
 |-------|-------------|---------------|
 | **Intake** | Initial task analysis and feasibility check. | `ceo` |
@@ -103,7 +133,7 @@ Tasks move through a finite state machine with the following primary stages:
 | **Implement** | Writing code and performing local verification. | `ceo-implementer` |
 | **Review** | Peer review of changes for quality and standards. | `ceo-reviewer` |
 | **Test** | Rigorous verification using test suites and CI-like checks. | `ceo-tester` |
-| **Deliver** | Final packaging and submission (e.g., Pull Request). | `ceo` |
+| **Deliver** | Final packaging and submission. | `ceo` |
 
 ## Tool List
 
@@ -126,15 +156,8 @@ Tasks move through a finite state machine with the following primary stages:
 
 ## Development
 
-Install dependencies with Bun:
-
 ```bash
 bun install
-```
-
-Run the standard verification flow before opening a pull request:
-
-```bash
 bun run ci:verify
 ```
 
@@ -145,14 +168,19 @@ Useful individual commands:
 - `bun test`
 - `bun run pack:check`
 
-Additional repository guidance lives in `CONTRIBUTING.md`, `SECURITY.md`, and `SUPPORT.md`.
+## Repository Standards
 
-## Repository Automation
+- CI is enforced on `main` with separate quality, test, and package checks.
+- Release publishing runs from tags through `.github/workflows/release.yml`.
+- Dependabot is configured for npm and GitHub Actions updates.
+- Branch protection requires reviews and passing checks before merge.
 
-- `.github/workflows/ci.yml` validates build, typecheck, tests, and package output on pushes and pull requests.
-- `.github/workflows/release.yml` publishes tagged releases to npm when `NPM_TOKEN` is configured.
-- `.github/dependabot.yml` keeps npm dependencies and GitHub Actions up to date.
-- `.github/ISSUE_TEMPLATE/` and `.github/PULL_REQUEST_TEMPLATE.md` provide consistent intake for bugs, features, and pull requests.
+## Next Docs
+
+- Getting started and operations: `docs/en/usage-guide.md`
+- Pull request process: `docs/en/pull-request-guide.md`
+- Model tuning by stage: `docs/en/model-recommendations.md`
+- Architecture details: `docs/ARCHITECTURE.md`
 
 ## License
 
